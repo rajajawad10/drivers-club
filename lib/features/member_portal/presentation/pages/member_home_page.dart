@@ -56,8 +56,8 @@ class _MobileLayout extends StatelessWidget {
   final ValueChanged<int> onNavTap;
   const _MobileLayout(
       {required this.currentIndex,
-      required this.screens,
-      required this.onNavTap});
+        required this.screens,
+        required this.onNavTap});
 
   @override
   Widget build(BuildContext context) {
@@ -70,73 +70,73 @@ class _MobileLayout extends StatelessWidget {
   }
 
   AppBar _buildAppBar(BuildContext context) => AppBar(
-        title: Text(
-          "CLUB PORTAL",
-          style: GoogleFonts.inter(
-            color: const Color(0xFF1E1E2C),
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.0,
-            fontSize: 16,
-          ),
+    title: Text(
+      "CLUB PORTAL",
+      style: GoogleFonts.inter(
+        color: const Color(0xFF1E1E2C),
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.0,
+        fontSize: 16,
+      ),
+    ),
+    backgroundColor: Colors.white,
+    elevation: 0,
+    centerTitle: false,
+    actions: [
+      IconButton(
+        icon: const Icon(LucideIcons.bell, color: Color(0xFF1E1E2C)),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const NotificationsScreen()),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.bell, color: Color(0xFF1E1E2C)),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen()),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage:
-                  NetworkImage('https://i.pravatar.cc/150?img=12'),
-            ),
-          ),
-        ],
-      );
+      ),
+      const SizedBox(width: 8),
+      const Padding(
+        padding: EdgeInsets.only(right: 16.0),
+        child:  CircleAvatar(
+          radius: 16,
+          backgroundImage:
+          AssetImage('assets/images/user_profile.png'),
+        ),
+      ),
+    ],
+  );
 
   Widget _buildBottomNav() => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 10,
+          offset: const Offset(0, -5),
         ),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          selectedItemColor: const Color(0xFFE45D25),
-          unselectedItemColor: Colors.grey,
-          backgroundColor: Colors.white,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle:
-              GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
-          elevation: 0,
-          onTap: onNavTap,
-          items: const [
-            BottomNavigationBarItem(
-                icon: Icon(LucideIcons.home), label: "Home"),
-            BottomNavigationBarItem(
-                icon: Icon(LucideIcons.calendarCheck), label: "Bookings"),
-            BottomNavigationBarItem(
-                icon: Icon(LucideIcons.crown), label: "Club"),
-            BottomNavigationBarItem(
-                icon: Icon(LucideIcons.user), label: "Profile"),
-          ],
-        ),
-      );
+      ],
+    ),
+    child: BottomNavigationBar(
+      currentIndex: currentIndex,
+      selectedItemColor: const Color(0xFFE45D25),
+      unselectedItemColor: Colors.grey,
+      backgroundColor: Colors.white,
+      type: BottomNavigationBarType.fixed,
+      selectedLabelStyle:
+      GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11),
+      unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
+      elevation: 0,
+      onTap: onNavTap,
+      items: const [
+        BottomNavigationBarItem(
+            icon: Icon(LucideIcons.home), label: "Home"),
+        BottomNavigationBarItem(
+            icon: Icon(LucideIcons.calendarCheck), label: "Bookings"),
+        BottomNavigationBarItem(
+            icon: Icon(LucideIcons.crown), label: "Club"),
+        BottomNavigationBarItem(
+            icon: Icon(LucideIcons.user), label: "Profile"),
+      ],
+    ),
+  );
 }
 
 // ── Tablet / Desktop Side-Nav Layout ──────────────────────────────────────
@@ -146,8 +146,8 @@ class _WideLayout extends StatelessWidget {
   final ValueChanged<int> onNavTap;
   const _WideLayout(
       {required this.currentIndex,
-      required this.screens,
-      required this.onNavTap});
+        required this.screens,
+        required this.onNavTap});
 
   static const _items = [
     (icon: LucideIcons.home, label: 'Home'),
@@ -176,17 +176,17 @@ class _WideLayout extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: r.isDesktop
                       ? Text(
-                          'CLUB\nPORTAL',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            color: const Color(0xFF1E1E2C),
-                            height: 1.3,
-                          ),
-                        )
+                    'CLUB\nPORTAL',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      color: const Color(0xFF1E1E2C),
+                      height: 1.3,
+                    ),
+                  )
                       : const Icon(LucideIcons.crown,
-                          color: Color(0xFFE45D25), size: 26),
+                      color: Color(0xFFE45D25), size: 26),
                 ),
                 const SizedBox(height: 32),
                 const Divider(height: 1),
@@ -239,7 +239,7 @@ class _NavRailItem extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: selected
               ? const Color(0xFFE45D25).withOpacity(0.1)
@@ -260,7 +260,7 @@ class _NavRailItem extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight:
-                      selected ? FontWeight.w700 : FontWeight.w500,
+                  selected ? FontWeight.w700 : FontWeight.w500,
                   color: selected
                       ? const Color(0xFFE45D25)
                       : Colors.grey[700],
@@ -342,40 +342,40 @@ class HomeContent extends StatelessWidget {
         // News cards — single column on mobile, 2-col on tablet+
         r.isMobile
             ? Column(
-                children: [
-                  _newsCard(context, r,
-                      "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-                      "Let's get this started!",
-                      "Discover how the new club portal works.",
-                      "GENERAL"),
-                  SizedBox(height: r.vs * 0.8),
-                  _newsCard(context, r,
-                      "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-                      "Special Menus",
-                      "Check out our seasonal dining options.",
-                      "EXCLUSIVE"),
-                ],
-              )
+          children: [
+            _newsCard(context, r,
+                "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
+                "Let's get this started!",
+                "Discover how the new club portal works.",
+                "GENERAL"),
+            SizedBox(height: r.vs * 0.8),
+            _newsCard(context, r,
+                "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
+                "Special Menus",
+                "Check out our seasonal dining options.",
+                "EXCLUSIVE"),
+          ],
+        )
             : Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _newsCard(context, r,
-                        "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-                        "Let's get this started!",
-                        "Discover how the new club portal works.",
-                        "GENERAL"),
-                  ),
-                  SizedBox(width: r.vs * 0.8),
-                  Expanded(
-                    child: _newsCard(context, r,
-                        "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-                        "Special Menus",
-                        "Check out our seasonal dining options.",
-                        "EXCLUSIVE"),
-                  ),
-                ],
-              ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _newsCard(context, r,
+                  "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
+                  "Let's get this started!",
+                  "Discover how the new club portal works.",
+                  "GENERAL"),
+            ),
+            SizedBox(width: r.vs * 0.8),
+            Expanded(
+              child: _newsCard(context, r,
+                  "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
+                  "Special Menus",
+                  "Check out our seasonal dining options.",
+                  "EXCLUSIVE"),
+            ),
+          ],
+        ),
         SizedBox(height: r.vs),
       ],
     );
@@ -484,7 +484,7 @@ class HomeContent extends StatelessWidget {
                 aspectRatio: 16 / 9,
                 child: ClipRRect(
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  const BorderRadius.vertical(top: Radius.circular(16)),
                   child: Image.network(
                     img,
                     width: double.infinity,
@@ -553,8 +553,96 @@ class HomeContent extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  BOOKINGS SCREEN
+//  BOOKINGS SCREEN  — Real rooms data
 // ─────────────────────────────────────────────────────────────────────────────
+
+// type: 'room' | 'event' | 'dining'
+const List<Map<String, String>> _realRooms = [
+  // ── UPCOMING ─────────────────────────────────────────────────────────────
+  {
+    'title':    'Board Room',
+    'date':     'Mar 15 – Mar 15, 2026',
+    'status':   'Confirmed',
+    'type':     'room',
+    'subtitle': 'Up to 15 people',
+    'image':    'https://images.unsplash.com/photo-1431540015161-0bf868a2d407?w=400&q=80',
+  },
+  {
+    'title':    'PETROL HOUR',
+    'date':     'Mar 19 – Mar 19, 2026',
+    'status':   'Confirmed',
+    'type':     'event',
+    'subtitle': 'CartWalk • 6:00 PM',
+    'image':    'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&q=80',
+  },
+  {
+    'title':    'Restaurant',
+    'date':     'Mar 22 – Mar 22, 2026',
+    'status':   'Confirmed',
+    'type':     'dining',
+    'subtitle': 'Dinner • 7:30 PM',
+    'image':    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80',
+  },
+  {
+    'title':    'Aston Martin',
+    'date':     'Mar 28 – Mar 28, 2026',
+    'status':   'Confirmed',
+    'type':     'room',
+    'subtitle': 'Up to 8 people',
+    'image':    'https://images.unsplash.com/photo-1577412647305-991150c7d163?w=400&q=80',
+  },
+
+  // ── PAST ─────────────────────────────────────────────────────────────────
+  {
+    'title':    'BMW M',
+    'date':     'Jan 10 – Jan 10, 2026',
+    'status':   'Completed',
+    'type':     'room',
+    'subtitle': 'Up to 8 people',
+    'image':    'https://images.unsplash.com/photo-1621609764095-b32bbe35cf3a?w=400&q=80',
+  },
+  {
+    'title':    'GEOPOLITICAL LUNCH',
+    'date':     'Feb 12 – Feb 12, 2026',
+    'status':   'Completed',
+    'type':     'event',
+    'subtitle': 'Club House • 12:00 PM',
+    'image':    'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=80',
+  },
+  {
+    'title':    'Wine Cellar',
+    'date':     'Jan 20 – Jan 20, 2026',
+    'status':   'Completed',
+    'type':     'dining',
+    'subtitle': 'Private Dining • 8:00 PM',
+    'image':    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
+  },
+  {
+    'title':    'Genesis',
+    'date':     'Jan 15 – Jan 15, 2026',
+    'status':   'Completed',
+    'type':     'room',
+    'subtitle': 'Up to 6 people',
+    'image':    'https://images.unsplash.com/photo-1497215842964-222b430dc094?w=400&q=80',
+  },
+  {
+    'title':    'ASH WEDNESDAY',
+    'date':     'Feb 18 – Feb 18, 2026',
+    'status':   'Completed',
+    'type':     'event',
+    'subtitle': 'Restaurant • 8:00 AM',
+    'image':    'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&q=80',
+  },
+  {
+    'title':    'Garden Room',
+    'date':     'Dec 15 – Dec 15, 2025',
+    'status':   'Completed',
+    'type':     'dining',
+    'subtitle': 'Private Dining • 1:00 PM',
+    'image':    'https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=400&q=80',
+  },
+];
+
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
 
@@ -573,7 +661,7 @@ class BookingsScreen extends StatelessWidget {
               labelStyle: GoogleFonts.inter(
                   fontWeight: FontWeight.w700, fontSize: 13),
               unselectedLabelStyle:
-                  GoogleFonts.inter(fontSize: 13),
+              GoogleFonts.inter(fontSize: 13),
               tabs: const [
                 Tab(text: "Upcoming"),
                 Tab(text: "Past"),
@@ -595,17 +683,48 @@ class BookingsScreen extends StatelessWidget {
 
   Widget _buildBookingList(BuildContext context, {required bool upcoming}) {
     final r = R.of(context);
+    final list = _realRooms
+        .where((room) => upcoming
+        ? room['status'] == 'Confirmed'
+        : room['status'] == 'Completed')
+        .toList();
+
+    if (list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(LucideIcons.calendarX2, size: 50, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              upcoming ? "No upcoming bookings" : "No past bookings",
+              style: GoogleFonts.inter(color: Colors.grey, fontSize: r.sp(14)),
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
-      padding: EdgeInsets.symmetric(
-          horizontal: r.hp, vertical: r.vs),
-      itemCount: upcoming ? 2 : 5,
-      itemBuilder: (context, index) =>
-          _bookingCard(context, upcoming, index),
+      padding: EdgeInsets.symmetric(horizontal: r.hp, vertical: r.vs),
+      itemCount: list.length,
+      itemBuilder: (context, index) => _bookingCard(context, list[index], index),
     );
   }
 
-  Widget _bookingCard(BuildContext context, bool upcoming, int index) {
+  Widget _bookingCard(BuildContext context, Map<String, String> room, int index) {
     final r = R.of(context);
+    final bool isConfirmed = room['status'] == 'Confirmed';
+    final String type = room['type'] ?? 'room';
+
+    // Type badge config
+    final Map<String, dynamic> typeCfg = {
+      'room':   {'label': 'ROOM',   'color': const Color(0xFF1E1E2C), 'icon': LucideIcons.doorOpen},
+      'event':  {'label': 'EVENT',  'color': const Color(0xFF8B5E3C), 'icon': LucideIcons.calendarCheck},
+      'dining': {'label': 'DINING', 'color': const Color(0xFF2E7D52), 'icon': LucideIcons.utensils},
+    };
+    final cfg = typeCfg[type]!;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -623,85 +742,123 @@ class BookingsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                ),
-                child: Image.network(
-                  upcoming
-                      ? "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400&q=80"
-                      : "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&q=80",
-                  height: r.adaptive(mobile: 90.0, tablet: 110.0, desktop: 120.0),
-                  width:  r.adaptive(mobile: 90.0, tablet: 110.0, desktop: 120.0),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 90,
-                    width: 90,
-                    color: Colors.grey[200],
-                    child: const Icon(LucideIcons.image,
-                        size: 30, color: Colors.grey),
+              // ── Image with type badge overlay ──────────────────────────
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                    ),
+                    child: Image.network(
+                      room['image']!,
+                      height: r.adaptive(mobile: 95.0, tablet: 110.0, desktop: 120.0),
+                      width:  r.adaptive(mobile: 95.0, tablet: 110.0, desktop: 120.0),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 95, width: 95,
+                        color: Colors.grey[200],
+                        child: const Icon(LucideIcons.image, size: 30, color: Colors.grey),
+                      ),
+                    ),
                   ),
-                ),
+                  // Type badge top-left
+                  Positioned(
+                    top: 8, left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: (cfg['color'] as Color),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(cfg['icon'] as IconData, size: 9, color: Colors.white),
+                          const SizedBox(width: 3),
+                          Text(
+                            cfg['label'] as String,
+                            style: GoogleFonts.inter(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
+
+              // ── Text content ───────────────────────────────────────────
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Title + Status badge
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Flexible(
                             child: Text(
-                              upcoming
-                                  ? "Executive Suite"
-                                  : "Deluxe Room",
-                              style: GoogleFonts.playfairDisplay(
-                                fontSize: r.sp(15),
-                                fontWeight: FontWeight.bold,
+                              room['title']!,
+                              style: GoogleFonts.inter(
+                                fontSize: r.sp(13),
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
-                              color: upcoming
+                              color: isConfirmed
                                   ? Colors.green.withOpacity(0.1)
                                   : Colors.grey.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              upcoming ? "Confirmed" : "Completed",
+                              room['status']!,
                               style: GoogleFonts.inter(
-                                fontSize: r.sp(9),
+                                fontSize: r.sp(8),
                                 fontWeight: FontWeight.bold,
-                                color: upcoming
-                                    ? Colors.green
-                                    : Colors.grey,
+                                color: isConfirmed ? Colors.green : Colors.grey,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
+                      // Subtitle (capacity / location+time)
                       Row(
                         children: [
-                          const Icon(LucideIcons.calendarDays,
-                              size: 13, color: Colors.grey),
-                          const SizedBox(width: 6),
+                          Icon(cfg['icon'] as IconData, size: 12, color: Colors.grey),
+                          const SizedBox(width: 5),
                           Flexible(
                             child: Text(
-                              upcoming
-                                  ? "Feb 24 – Feb 26, 2026"
-                                  : "Jan 10 – Jan 12, 2026",
-                              style: GoogleFonts.inter(
-                                  fontSize: r.sp(11),
-                                  color: Colors.grey),
+                              room['subtitle'] ?? '',
+                              style: GoogleFonts.inter(fontSize: r.sp(11), color: Colors.grey),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      // Date
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.calendarDays, size: 12, color: Colors.grey),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              room['date']!,
+                              style: GoogleFonts.inter(fontSize: r.sp(11), color: Colors.grey),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -713,7 +870,7 @@ class BookingsScreen extends StatelessWidget {
               ),
             ],
           ),
-          if (upcoming)
+          if (isConfirmed)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),

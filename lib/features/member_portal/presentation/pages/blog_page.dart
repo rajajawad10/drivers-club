@@ -1,205 +1,317 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'notifications_page.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  NEWSFEED PAGE  — matches website grid layout exactly
+//  · Beige background
+//  · "NEWSFEED" top-left bold heading + bell + calendar icons (outlined)
+//  · 2-column grid: image on top, title + description below
+//  · Footer: logo circle | Instagram | FAQ Terms Privacy
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+const List<Map<String, String>> _newsItems = [
+  {
+    'title':       "Let's get this started!",
+    'description': 'Hier erfahren Sie alles, was Sie über diese App wissen müssen: Wie funktioniert\'s? Wo finde ich was?',
+    'image':       'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80',
+    'date':        'Mar 01, 2026',
+    'author':      'Club Team',
+    'tag':         'WELCOME',
+  },
+  {
+    'title':       'Special Menus',
+    'description': 'Here you can find our current special menus.',
+    'image':       'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+    'date':        'Feb 28, 2026',
+    'author':      'Chef Team',
+    'tag':         'DINING',
+  },
+  {
+    'title':       'PETROL HOUR — March Edition',
+    'description': 'The perfect opportunity to get to know other members in a relaxed setting over curated drinks.',
+    'image':       'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80',
+    'date':        'Feb 25, 2026',
+    'author':      'Events Team',
+    'tag':         'EVENT',
+  },
+  {
+    'title':       'New Brand Rooms Available',
+    'description': 'Discover our newly designed Aston Martin and BMW M brand rooms — now available for booking.',
+    'image':       'https://images.unsplash.com/photo-1577412647305-991150c7d163?w=800&q=80',
+    'date':        'Feb 20, 2026',
+    'author':      'Club Team',
+    'tag':         'ROOMS',
+  },
+  {
+    'title':       'Geopolitical Lunch Series',
+    'description': 'Join us for an exclusive afternoon discussing global trends with industry leaders.',
+    'image':       'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80',
+    'date':        'Feb 12, 2026',
+    'author':      'Club Team',
+    'tag':         'LIFESTYLE',
+  },
+  {
+    'title':       'Wine Cellar — Private Dinners',
+    'description': 'An intimate candlelit setting surrounded by our finest wine collection. Reserve your table now.',
+    'image':       'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
+    'date':        'Feb 05, 2026',
+    'author':      'Dining Team',
+    'tag':         'DINING',
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 class BlogListPage extends StatelessWidget {
   const BlogListPage({super.key});
 
+  static const _bg      = Color(0xFFE8E6E0);
+  static const _divider = Color(0xFFBFBDB7);
+
   @override
   Widget build(BuildContext context) {
+    final size   = MediaQuery.of(context).size;
+    final isWide = size.width > 600;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: Text(
-          "Articles & Insights",
-          style: GoogleFonts.inter(
-            color: const Color(0xFF1E1E2C),
-            fontWeight: FontWeight.bold,
-          ),
+      backgroundColor: _bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── Header ───────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'NEWSFEED',
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  // Bell icon
+                  _OutlinedIconBtn(
+                    icon: LucideIcons.bell,
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationsPage())),
+                  ),
+                  const SizedBox(width: 8),
+                  // Calendar icon
+                  _OutlinedIconBtn(
+                    icon: LucideIcons.calendarDays,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+
+            Divider(color: _divider, height: 1),
+
+            // ── Grid ─────────────────────────────────────────────────────────
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isWide ? 2 : 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: isWide ? 0.85 : 0.78,
+                ),
+                itemCount: _newsItems.length,
+                itemBuilder: (context, index) => _NewsCard(
+                  item: _newsItems[index],
+                  index: index,
+                ),
+              ),
+            ),
+
+            // ── Footer ───────────────────────────────────────────────────────
+            Divider(color: _divider, height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Club logo circle
+                  Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black87, width: 2),
+                    ),
+                    child: const Center(
+                      child: Icon(LucideIcons.crown,
+                          size: 13, color: Colors.black87),
+                    ),
+                  ),
+                  // Instagram
+                  const Icon(LucideIcons.instagram,
+                      size: 20, color: Colors.black54),
+                  // Links
+                  Row(
+                    children: ['FAQ', 'Terms', 'Privacy'].map((l) =>
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Text(l,
+                              style: GoogleFonts.inter(
+                                  fontSize: 12, color: Colors.black54)),
+                        ),
+                    ).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.search, color: Color(0xFF1E1E2C)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Search feature coming soon!")),
-              );
-            },
-          ),
-        ],
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(20),
-        itemCount: 5,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          return _BlogCard(index: index);
-        },
       ),
     );
   }
 }
 
-class _BlogCard extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+//  News Card — image top, title + description bottom (website style)
+// ─────────────────────────────────────────────────────────────────────────────
+class _NewsCard extends StatelessWidget {
+  final Map<String, String> item;
   final int index;
-
-  const _BlogCard({required this.index});
+  const _NewsCard({required this.item, required this.index});
 
   @override
   Widget build(BuildContext context) {
-    final titles = [
-      "5 Tips for a Perfect Stay",
-      "Discover Our New Menu",
-      "Top 10 Local Attractions",
-      "Relaxation at the Spa",
-      "Executive Suite Benefits",
-    ];
-    final authors = [
-      "Alex Johnson",
-      "Chef Mario",
-      "Sarah Smith",
-      "Emma Watson",
-      "John Doe",
-    ];
-    final dates = [
-      "Oct 26, 2023",
-      "Nov 12, 2023",
-      "Nov 15, 2023",
-      "Dec 01, 2023",
-      "Jan 10, 2024",
-    ];
-    final images = [
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
-      "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80",
-      "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
-      "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&q=80",
-    ];
-
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BlogDetailsPage(
-              title: titles[index],
-              author: authors[index],
-              date: dates[index],
-              imageUrl: images[index],
-            ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlogDetailsPage(
+            title:    item['title']!,
+            author:   item['author']!,
+            date:     item['date']!,
+            imageUrl: item['image']!,
+            tag:      item['tag']!,
+            description: item['description']!,
           ),
-        );
-      },
+        ),
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(4),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-              child: Image.network(
-                images[index],
-                width: 120,
-                height: 120, // Fixed height for consistent layout
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 120,
-                    height: 120,
-                    color: Colors.grey[200],
-                    child: const Icon(LucideIcons.image, color: Colors.grey),
-                  );
-                },
+            // ── Image (top, full width) ─────────────────────────────────────
+            Expanded(
+              flex: 5,
+              child: ClipRRect(
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(4)),
+                child: Image.network(
+                  item['image']!,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFFE8E6E0),
+                    child: const Icon(LucideIcons.image,
+                        size: 36, color: Colors.grey),
+                  ),
+                ),
               ),
             ),
+
+            // ── Title + Description (bottom) ────────────────────────────────
             Expanded(
+              flex: 4,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Title
                     Text(
-                      titles[index],
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E1E2C),
-                      ),
+                      item['title']!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                        height: 1.3,
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(LucideIcons.user, size: 12, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Text(
-                              authors[index],
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                    const SizedBox(height: 6),
+                    // Description
+                    Expanded(
+                      child: Text(
+                        item['description']!,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.grey[600],
+                          height: 1.5,
                         ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(LucideIcons.calendar, size: 12, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Text(
-                              dates[index],
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(LucideIcons.chevronRight, color: Colors.grey, size: 20),
-            ),
           ],
         ),
       ),
-    ).animate().fadeIn(delay: (index * 100).ms).slideX();
+    ).animate().fadeIn(delay: (index * 80).ms);
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Outlined icon button (bell / calendar)
+// ─────────────────────────────────────────────────────────────────────────────
+class _OutlinedIconBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _OutlinedIconBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: 40, height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black26, width: 1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Icon(icon, size: 18, color: Colors.black87),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Blog Details Page
+// ─────────────────────────────────────────────────────────────────────────────
 class BlogDetailsPage extends StatelessWidget {
   final String title;
   final String author;
   final String date;
   final String imageUrl;
+  final String tag;
+  final String description;
 
   const BlogDetailsPage({
     super.key,
@@ -207,154 +319,186 @@ class BlogDetailsPage extends StatelessWidget {
     required this.author,
     required this.date,
     required this.imageUrl,
+    this.tag = 'NEWS',
+    this.description = '',
   });
+
+  static const _bg = Color(0xFFE8E6E0);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bg,
       body: CustomScrollView(
         slivers: [
+          // ── Hero image + back button ──────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 300,
+            expandedHeight: 260,
             pinned: true,
             backgroundColor: Colors.white,
-            leading: IconButton(
-              icon: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(LucideIcons.arrowLeft, color: Colors.black),
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8),
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.12),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(LucideIcons.arrowLeft,
+                      color: Colors.black, size: 20),
+                ),
               ),
-              onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
-                  );
-                },
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFFE8E6E0),
+                  child: const Icon(LucideIcons.image,
+                      size: 50, color: Colors.grey),
+                ),
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+
+          // ── Content ───────────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Container(
+              color: Colors.white,
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Tag badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    color: Colors.black,
+                    child: Text(
+                      tag,
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Title
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Author + Date row
+                  Row(
                     children: [
-                      // Category Tag
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE45D25).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "LIFESTYLE",
+                      const Icon(LucideIcons.user,
+                          size: 13, color: Colors.grey),
+                      const SizedBox(width: 5),
+                      Text(author,
                           style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFE45D25),
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      Text(
-                        title,
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1E1E2C),
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      Row(
-                        children: [
-                          const CircleAvatar(
-                            radius: 20,
-                            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=12'),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                author,
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1E1E2C),
-                                ),
-                              ),
-                              Text(
-                                date,
-                                style: GoogleFonts.inter(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 32),
-                      const Divider(),
-                      const SizedBox(height: 32),
-                      
-                      Text(
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          height: 1.8,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 48),
-                      
-                      // Call to Action
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: () {
-                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Redirecting to room booking...")),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE45D25),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 5,
-                            shadowColor: const Color(0xFFE45D25).withValues(alpha: 0.4),
-                          ),
-                          child: Text(
-                            "Book a Stay",
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(width: 16),
+                      const Icon(LucideIcons.calendar,
+                          size: 13, color: Colors.grey),
+                      const SizedBox(width: 5),
+                      Text(date,
+                          style: GoogleFonts.inter(
+                              fontSize: 12, color: Colors.grey[600])),
                     ],
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 20),
+                  const Divider(color: Color(0xFFE0D8CC)),
+                  const SizedBox(height: 20),
+
+                  // Description / body
+                  Text(
+                    description.isNotEmpty
+                        ? description
+                        : 'Stay tuned for more details about this story.',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      height: 1.8,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Full article body
+                  Text(
+                    'As a member of our exclusive club, you are among the first to receive this update. '
+                        'We continuously strive to bring you the finest experiences — from curated events and '
+                        'premium dining to world-class meeting facilities.\n\n'
+                        'Our team is dedicated to ensuring every visit exceeds your expectations. '
+                        'Whether you are here for business or leisure, we have crafted every detail '
+                        'with your comfort and satisfaction in mind.\n\n'
+                        'We look forward to welcoming you and making every moment memorable.',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      height: 1.8,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Footer links
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 34, height: 34,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border:
+                          Border.all(color: Colors.black87, width: 2),
+                        ),
+                        child: const Center(
+                          child: Icon(LucideIcons.crown,
+                              size: 12, color: Colors.black87),
+                        ),
+                      ),
+                      const Icon(LucideIcons.instagram,
+                          size: 18, color: Colors.black54),
+                      Row(
+                        children: ['FAQ', 'Terms', 'Privacy']
+                            .map((l) => Padding(
+                          padding:
+                          const EdgeInsets.only(left: 16),
+                          child: Text(l,
+                              style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.black54)),
+                        ))
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

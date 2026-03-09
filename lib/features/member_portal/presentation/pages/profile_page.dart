@@ -76,8 +76,8 @@ class _ProfileContentState extends State<ProfileContent> {
   @override
   void dispose() {
     for (final c in [_firstName,_lastName,_middleName,_email,_company,
-        _jobTitle,_phone,_mobile,_address,_apt,_city,_postal,
-        _currentPw,_newPw,_confirmPw]) {
+      _jobTitle,_phone,_mobile,_address,_apt,_city,_postal,
+      _currentPw,_newPw,_confirmPw]) {
       c.dispose();
     }
     super.dispose();
@@ -128,10 +128,9 @@ class _ProfileContentState extends State<ProfileContent> {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.grey[300],
-                  child: const Icon(LucideIcons.user,
-                      size: 26, color: Colors.white),
+                  radius: 16,
+                  backgroundImage:
+                  AssetImage('assets/images/user_profile.png'),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -139,7 +138,7 @@ class _ProfileContentState extends State<ProfileContent> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Ahmed',
+                        'Ammar Raja',
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -147,7 +146,7 @@ class _ProfileContentState extends State<ProfileContent> {
                         ),
                       ),
                       Text(
-                        'Ahmed@gmail.com',
+                        'ammar.raja1@gmail.com',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: Colors.black54,
@@ -169,26 +168,26 @@ class _ProfileContentState extends State<ProfileContent> {
           Expanded(
             child: isWide
                 ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ─ Left sidebar ─────────────────────────────────────
-                      SizedBox(
-                        width: 180,
-                        child: _buildSideNav(),
-                      ),
-                      VerticalDivider(
-                          width: 1, color: _divider),
-                      // ─ Right content ─────────────────────────────────────
-                      Expanded(child: _buildContent()),
-                    ],
-                  )
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ─ Left sidebar ─────────────────────────────────────
+                SizedBox(
+                  width: 180,
+                  child: _buildSideNav(),
+                ),
+                VerticalDivider(
+                    width: 1, color: _divider),
+                // ─ Right content ─────────────────────────────────────
+                Expanded(child: _buildContent()),
+              ],
+            )
                 : Column(
-                    children: [
-                      _buildSideNavHorizontal(),
-                      Divider(color: _divider, height: 1),
-                      Expanded(child: _buildContent()),
-                    ],
-                  ),
+              children: [
+                _buildSideNavHorizontal(),
+                Divider(color: _divider, height: 1),
+                Expanded(child: _buildContent()),
+              ],
+            ),
           ),
         ],
       ),
@@ -212,16 +211,16 @@ class _ProfileContentState extends State<ProfileContent> {
                 horizontal: 20, vertical: 13),
             decoration: active
                 ? BoxDecoration(
-                    border: Border.all(
-                        color: Colors.black, width: 1),
-                  )
+              border: Border.all(
+                  color: Colors.black, width: 1),
+            )
                 : null,
             child: Text(
               _navItems[i],
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight:
-                    active ? FontWeight.w700 : FontWeight.w400,
+                active ? FontWeight.w700 : FontWeight.w400,
                 color: Colors.black,
               ),
             ),
@@ -253,7 +252,7 @@ class _ProfileContentState extends State<ProfileContent> {
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight:
-                      active ? FontWeight.w700 : FontWeight.w400,
+                  active ? FontWeight.w700 : FontWeight.w400,
                   color: active ? Colors.black : Colors.black54,
                   decoration: active
                       ? TextDecoration.underline
@@ -333,8 +332,8 @@ class _ProfileContentState extends State<ProfileContent> {
             child: _tabIndex == 0
                 ? _buildAccountDetails()
                 : _tabIndex == 1
-                    ? _buildPersonalDetails()
-                    : _buildAdvancedSettings(),
+                ? _buildPersonalDetails()
+                : _buildAdvancedSettings(),
           ),
         ),
       ],
@@ -354,7 +353,7 @@ class _ProfileContentState extends State<ProfileContent> {
           Text(
             'Corporate - Global network',
             style: GoogleFonts.inter(
-              fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black),
+                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black),
           ),
           const SizedBox(height: 6),
           RichText(
@@ -418,7 +417,7 @@ class _ProfileContentState extends State<ProfileContent> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Ahmed',
+                  'Ammar Raja ',
                   style: GoogleFonts.inter(
                     fontSize: 16, fontWeight: FontWeight.w800, color: Colors.black,
                     letterSpacing: 1.0,
@@ -428,7 +427,7 @@ class _ProfileContentState extends State<ProfileContent> {
                 Text(
                   '2618',
                   style: GoogleFonts.inter(
-                    fontSize: 14, fontWeight: FontWeight.w400, color: Colors.black54),
+                      fontSize: 14, fontWeight: FontWeight.w400, color: Colors.black54),
                 ),
               ],
             ),
@@ -447,7 +446,7 @@ class _ProfileContentState extends State<ProfileContent> {
                     Text(
                       'Nominate a Member',
                       style: GoogleFonts.inter(
-                        fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black),
+                          fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black),
                     ),
                     const SizedBox(height: 6),
                     RichText(
@@ -596,7 +595,7 @@ class _ProfileContentState extends State<ProfileContent> {
             Text(
               'Wallet',
               style: GoogleFonts.inter(
-                fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
+                  fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
             ),
             SizedBox(
               height: 40,
@@ -651,7 +650,7 @@ class _ProfileContentState extends State<ProfileContent> {
         Text(
           label,
           style: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
+              fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
         ),
         const SizedBox(height: 16),
         Text(
@@ -703,7 +702,7 @@ class _ProfileContentState extends State<ProfileContent> {
         Text(
           'Statements',
           style: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
+              fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
         ),
         const SizedBox(height: 16),
         ...statements.map((s) => Column(
@@ -721,13 +720,13 @@ class _ProfileContentState extends State<ProfileContent> {
                         Text(
                           s['month']!,
                           style: GoogleFonts.inter(
-                            fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black),
+                              fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           s['transactions']!,
                           style: GoogleFonts.inter(
-                            fontSize: 12, color: const Color(0xFFC0742A)),
+                              fontSize: 12, color: const Color(0xFFC0742A)),
                         ),
                       ],
                     ),
@@ -735,7 +734,7 @@ class _ProfileContentState extends State<ProfileContent> {
                   Text(
                     s['amount']!,
                     style: GoogleFonts.inter(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black),
+                        fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black),
                   ),
                 ],
               ),
@@ -756,7 +755,7 @@ class _ProfileContentState extends State<ProfileContent> {
         Text(
           label,
           style: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
+              fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black),
         ),
         const SizedBox(height: 16),
         Text(
@@ -1059,13 +1058,13 @@ class _ProfileContentState extends State<ProfileContent> {
         const SizedBox(height: 16),
 
         _pwField('Current password',  _currentPw, _showCurrent,
-            () => setState(() => _showCurrent = !_showCurrent)),
+                () => setState(() => _showCurrent = !_showCurrent)),
         const SizedBox(height: 12),
         _pwField('New password',       _newPw,     _showNew,
-            () => setState(() => _showNew = !_showNew)),
+                () => setState(() => _showNew = !_showNew)),
         const SizedBox(height: 12),
         _pwField('Password confirmation', _confirmPw, _showConfirm,
-            () => setState(() => _showConfirm = !_showConfirm)),
+                () => setState(() => _showConfirm = !_showConfirm)),
 
         const SizedBox(height: 28),
         _saveBtn(),
@@ -1078,22 +1077,22 @@ class _ProfileContentState extends State<ProfileContent> {
   // ── Shared helpers ─────────────────────────────────────────────────────────
 
   Widget _sectionTitle(String t) => Text(
-        t,
-        style: GoogleFonts.inter(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Colors.black,
-        ),
-      );
+    t,
+    style: GoogleFonts.inter(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: Colors.black,
+    ),
+  );
 
   Widget _labelText(String t) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Text(
-          t,
-          style: GoogleFonts.inter(
-              fontSize: 11, color: Colors.black54),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(
+      t,
+      style: GoogleFonts.inter(
+          fontSize: 11, color: Colors.black54),
+    ),
+  );
 
   // Plain white text field
   Widget _fieldCol(String label, TextEditingController ctrl,
@@ -1124,7 +1123,7 @@ class _ProfileContentState extends State<ProfileContent> {
             focusedBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.zero,
               borderSide:
-                  BorderSide(color: Colors.black, width: 1),
+              BorderSide(color: Colors.black, width: 1),
             ),
           ),
         ),
@@ -1174,8 +1173,8 @@ class _ProfileContentState extends State<ProfileContent> {
                     filled: true,
                     fillColor: Colors.white,
                     contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 14),
+                    const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 14),
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.zero,
                       borderSide: BorderSide.none,
@@ -1225,7 +1224,7 @@ class _ProfileContentState extends State<ProfileContent> {
             focusedBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.zero,
               borderSide:
-                  BorderSide(color: Colors.black, width: 1),
+              BorderSide(color: Colors.black, width: 1),
             ),
             suffixIcon: GestureDetector(
               onTap: toggle,
@@ -1264,8 +1263,8 @@ class _ProfileContentState extends State<ProfileContent> {
           value: value,
           hint: hint != null
               ? Text(hint,
-                  style: GoogleFonts.inter(
-                      fontSize: 13, color: Colors.black54))
+              style: GoogleFonts.inter(
+                  fontSize: 13, color: Colors.black54))
               : null,
           icon: const Icon(LucideIcons.chevronDown,
               size: 16, color: Colors.black54),
@@ -1275,9 +1274,9 @@ class _ProfileContentState extends State<ProfileContent> {
               fontWeight: FontWeight.w500),
           items: items
               .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ))
+            value: e,
+            child: Text(e),
+          ))
               .toList(),
           onChanged: onChanged,
         ),
@@ -1333,68 +1332,68 @@ class _ProfileContentState extends State<ProfileContent> {
 
   // SAVE CHANGES button
   Widget _saveBtn() => SizedBox(
-        width: 220,
-        height: 48,
-        child: ElevatedButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Changes saved!',
-                    style: GoogleFonts.inter(
-                        color: Colors.white)),
-                backgroundColor: Colors.black,
-                behavior: SnackBarBehavior.floating,
-                margin: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4)),
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
+    width: 220,
+    height: 48,
+    child: ElevatedButton(
+      onPressed: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Changes saved!',
+                style: GoogleFonts.inter(
+                    color: Colors.white)),
             backgroundColor: Colors.black,
-            elevation: 0,
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.zero),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4)),
           ),
-          child: Text(
-            'SAVE CHANGES',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.4,
-              color: Colors.white,
-            ),
-          ),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero),
+      ),
+      child: Text(
+        'SAVE CHANGES',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.4,
+          color: Colors.white,
         ),
-      );
+      ),
+    ),
+  );
 
   // Footer
   Widget _footer() => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: 34, height: 34,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black87, width: 2),
-            ),
-            child: const Center(
-              child: Icon(LucideIcons.crown,
-                  size: 12, color: Colors.black87),
-            ),
-          ),
-          const Icon(LucideIcons.instagram,
-              size: 18, color: Colors.black54),
-          Row(
-            children: ['FAQ','Terms','Privacy'].map((l) => Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(l,
-                  style: GoogleFonts.inter(
-                      fontSize: 12, color: Colors.black54)),
-            )).toList(),
-          ),
-        ],
-      );
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Container(
+        width: 34, height: 34,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black87, width: 2),
+        ),
+        child: const Center(
+          child: Icon(LucideIcons.crown,
+              size: 12, color: Colors.black87),
+        ),
+      ),
+      const Icon(LucideIcons.instagram,
+          size: 18, color: Colors.black54),
+      Row(
+        children: ['FAQ','Terms','Privacy'].map((l) => Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Text(l,
+              style: GoogleFonts.inter(
+                  fontSize: 12, color: Colors.black54)),
+        )).toList(),
+      ),
+    ],
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1407,14 +1406,14 @@ class _OutlinedIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black26, width: 1),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Icon(icon, size: 18, color: Colors.black87),
-        ),
-      );
+    onTap: onTap,
+    child: Container(
+      width: 40, height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black26, width: 1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Icon(icon, size: 18, color: Colors.black87),
+    ),
+  );
 }
