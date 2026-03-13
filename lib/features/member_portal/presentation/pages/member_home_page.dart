@@ -5,6 +5,8 @@ import 'package:pitstop/features/member_portal/presentation/pages/explore_events
 import 'package:pitstop/features/member_portal/presentation/pages/club_house_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/club_benefits_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/booking_details_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/notifications_page.dart';
 
 import 'package:pitstop/features/member_portal/presentation/pages/dining_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/room_booking_page.dart';
@@ -63,11 +65,14 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: _buildAppBar(context),
-      body: screens[currentIndex],
-      bottomNavigationBar: _buildBottomNav(),
+    return WillPopScope(
+      onWillPop: () => _confirmExit(context),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        appBar: _buildAppBar(context),
+        body: screens[currentIndex],
+        bottomNavigationBar: _buildBottomNav(),
+      ),
     );
   }
 
@@ -90,7 +95,7 @@ class _MobileLayout extends StatelessWidget {
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => const NotificationsScreen()),
+              builder: (context) => const NotificationsPage()),
         ),
       ),
       const SizedBox(width: 8),
@@ -148,6 +153,31 @@ class _MobileLayout extends StatelessWidget {
       ],
     ),
   );
+
+  Future<bool> _confirmExit(BuildContext context) async {
+    if (currentIndex != 0) {
+      onNavTap(0);
+      return false;
+    }
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Exit App"),
+        content: const Text("Are you sure you want to exit?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("CANCEL"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("EXIT"),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 }
 
 // ── Tablet / Desktop Side-Nav Layout ──────────────────────────────────────
@@ -171,59 +201,87 @@ class _WideLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = R.of(context);
     final navWidth = r.isDesktop ? 200.0 : 72.0;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: Row(
-        children: [
-          // Side rail
-          Container(
-            width: navWidth,
-            color: Colors.white,
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                // Logo
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: r.isDesktop
-                      ? Text(
-                    'CLUB\nPORTAL',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: const Color(0xFF1E1E2C),
-                      height: 1.3,
-                    ),
-                  )
-                      : const Icon(LucideIcons.crown,
-                      color: Color(0xFFE45D25), size: 26),
-                ),
-                const SizedBox(height: 32),
-                const Divider(height: 1),
-                const SizedBox(height: 16),
-                ...List.generate(_items.length, (i) {
-                  final item = _items[i];
-                  final selected = i == currentIndex;
-                  return _NavRailItem(
-                    icon: item.icon,
-                    label: item.label,
-                    selected: selected,
-                    showLabel: r.isDesktop,
-                    onTap: () => onNavTap(i),
-                  );
-                }),
-              ],
+    return WillPopScope(
+      onWillPop: () => _confirmExit(context),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Row(
+          children: [
+            // Side rail
+            Container(
+              width: navWidth,
+              color: Colors.white,
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  // Logo
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: r.isDesktop
+                        ? Text(
+                      'CLUB\nPORTAL',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        color: const Color(0xFF1E1E2C),
+                        height: 1.3,
+                      ),
+                    )
+                        : const Icon(LucideIcons.crown,
+                        color: Color(0xFFE45D25), size: 26),
+                  ),
+                  const SizedBox(height: 32),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
+                  ...List.generate(_items.length, (i) {
+                    final item = _items[i];
+                    final selected = i == currentIndex;
+                    return _NavRailItem(
+                      icon: item.icon,
+                      label: item.label,
+                      selected: selected,
+                      showLabel: r.isDesktop,
+                      onTap: () => onNavTap(i),
+                    );
+                  }),
+                ],
+              ),
             ),
+            const VerticalDivider(width: 1),
+            // Main content
+            Expanded(
+              child: screens[currentIndex],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmExit(BuildContext context) async {
+    if (currentIndex != 0) {
+      onNavTap(0);
+      return false;
+    }
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Exit App"),
+        content: const Text("Are you sure you want to exit?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("CANCEL"),
           ),
-          const VerticalDivider(width: 1),
-          // Main content
-          Expanded(
-            child: screens[currentIndex],
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("EXIT"),
           ),
         ],
       ),
     );
+    return result ?? false;
   }
 }
 
@@ -882,21 +940,29 @@ class BookingsScreen extends StatelessWidget {
             ],
           ),
           if (isConfirmed)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                    top: BorderSide(
-                        color: Colors.grey.withOpacity(0.1))),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BookingDetailsPage(booking: room),
+                ),
               ),
-              child: Center(
-                child: Text(
-                  "View Details",
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.bold,
-                    fontSize: r.sp(13),
-                    color: const Color(0xFFE45D25),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border(
+                      top: BorderSide(
+                          color: Colors.grey.withOpacity(0.1))),
+                ),
+                child: Center(
+                  child: Text(
+                    "View Details",
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      fontSize: r.sp(13),
+                      color: const Color(0xFFE45D25),
+                    ),
                   ),
                 ),
               ),
@@ -935,81 +1001,6 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final r = R.of(context);
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: Text("Notifications",
-            style: GoogleFonts.inter(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: r.sp(16))),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: ListView(
-            padding: EdgeInsets.symmetric(
-                horizontal: r.hp, vertical: r.vs),
-            children: [
-              _notificationTile(r, LucideIcons.newspaper,
-                  "Weekly Newsletter",
-                  "Check out the new events for this week.",
-                  "2 hrs ago"),
-              _notificationTile(r, LucideIcons.checkCircle,
-                  "Booking Confirmed",
-                  "Your suite booking for Feb 24 is confirmed.",
-                  "5 hrs ago"),
-              _notificationTile(r, LucideIcons.info,
-                  "Maintenance Alert",
-                  "The pool will be closed for maintenance tomorrow.",
-                  "1 day ago"),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _notificationTile(R r, IconData icon, String title,
-      String subtitle, String time) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        leading: Icon(icon,
-            color: const Color(0xFFE45D25),
-            size: r.adaptive(mobile: 22.0, tablet: 26.0, desktop: 28.0)),
-        title: Text(title,
-            style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600, fontSize: r.sp(13))),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(subtitle,
-                style: GoogleFonts.inter(
-                    fontSize: r.sp(12), color: Colors.grey[600])),
-            const SizedBox(height: 6),
-            Text(time,
-                style: GoogleFonts.inter(
-                    fontSize: r.sp(10), color: Colors.grey[400])),
-          ],
-        ),
-      ),
-    ).animate().fadeIn().slideX();
+    return const NotificationsPage();
   }
 }

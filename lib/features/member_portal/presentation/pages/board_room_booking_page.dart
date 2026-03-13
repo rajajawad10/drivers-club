@@ -37,8 +37,25 @@ class _BoardRoomBookingPageState extends State<BoardRoomBookingPage> {
       widget.roomData?['capacity']?.toString() ?? 'Up to 15 people';
 
   int get _maxGuests {
-    final cap = _roomCapacity.replaceAll(RegExp(r'[^0-9]'), '');
-    return int.tryParse(cap) ?? 30;
+    final matches = RegExp(r'\d+').allMatches(_roomCapacity).toList();
+    if (matches.isEmpty) {
+      return 30;
+    }
+    final values = matches
+        .map((m) => int.tryParse(m.group(0) ?? ''))
+        .whereType<int>()
+        .toList();
+    if (values.isEmpty) {
+      return 30;
+    }
+    return values.reduce((a, b) => a > b ? a : b);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final max = _maxGuests;
+    _guests = _guests.clamp(1, max);
   }
 
   String _formatDate(DateTime d) {

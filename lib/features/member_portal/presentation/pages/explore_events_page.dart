@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/balanced_event_details_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/shopping_cart_page.dart';
+import 'package:pitstop/core/providers/cart_provider.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/member_home_page.dart';
 
 class ExploreEventsPage extends StatefulWidget {
   const ExploreEventsPage({super.key});
@@ -357,224 +360,247 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5), // Light professional grey
-      appBar: AppBar(
-        title: Text(
-          "EVENTS",
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w900,
-            color: Colors.black,
-            letterSpacing: 1.0,
+    return WillPopScope(
+      onWillPop: () async {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          return false;
+        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MemberHomePage()),
+          (route) => false,
+        );
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5), // Light professional grey
+        appBar: AppBar(
+          title: Text(
+            "EVENTS",
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+              letterSpacing: 1.0,
+            ),
           ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    onTap: () {
-                      showSearch(
-                        context: context,
-                        delegate: EventSearchDelegate(events: allEvents),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: "Search events...",
-                      hintStyle: GoogleFonts.inter(color: Colors.grey[700]),
-                      prefixIcon: Icon(LucideIcons.search, color: Colors.grey[700]),
-                      filled: true,
-                      fillColor: const Color(0xFFE0E0E0),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.black),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(60),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      readOnly: true,
+                      onTap: () {
+                        showSearch(
+                          context: context,
+                          delegate: EventSearchDelegate(events: allEvents),
+                        );
+                      },
+                      decoration: InputDecoration(
+                        hintText: "Search events...",
+                        hintStyle: GoogleFonts.inter(color: Colors.grey[700]),
+                        prefixIcon: Icon(LucideIcons.search, color: Colors.grey[700]),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E2C),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: GestureDetector(
-                    onTap: _showFilterSheet,
-                    child: Row(
-                      children: [
-                        const Icon(LucideIcons.filter, color: Colors.white, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          "FILTERS${_activeFilterCount > 0 ? '($_activeFilterCount)' : '(0)'}",
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E2C),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
+                    child: GestureDetector(
+                      onTap: _showFilterSheet,
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.filter, color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            "FILTERS${_activeFilterCount > 0 ? '($_activeFilterCount)' : '(0)'}",
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1E1E2C),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ShoppingCartPage()),
-          );
-        },
-        child: Stack(
-          clipBehavior: Clip.none,
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: const Color(0xFF1E1E2C),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ShoppingCartPage()),
+            );
+          },
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(LucideIcons.shoppingCart, color: Colors.white),
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Consumer<CartProvider>(
+                  builder: (context, cartProvider, child) {
+                    if (cartProvider.totalCount <= 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE45D25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        cartProvider.totalCount.toString(),
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(LucideIcons.shoppingCart, color: Colors.white),
-            Positioned(
-              right: -4,
-              top: -4,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE45D25),
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  "1",
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
+            const SizedBox(height: 16),
+            // 1. HORIZONTAL CATEGORY BAR
+            SizedBox(
+              height: 40,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemBuilder: (context, index) {
+                  bool isActive = selectedCategory == categories[index];
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = categories[index];
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            categories[index],
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                              color: isActive ? Colors.black : Colors.grey[500],
+                            ),
+                          ),
+                          if (isActive)
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              height: 4,
+                              width: 24, // Wider indicator
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.all(Radius.circular(2)),
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 4), // Placeholder to prevent jumping
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // 2. FILTERED EVENTS LIST
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _buildEventList(),
+              ),
+            ),
+
+            // 3. FOOTER
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Logo (Placeholder)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Text("44", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+
+                  // Social Icon (Placeholder)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(LucideIcons.instagram, size: 16, color: Colors.grey),
+                  ),
+
+                  // Links
+                  Row(
+                    children: [
+                      Text("FAQ", style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w500)),
+                      const SizedBox(width: 16),
+                      Text("Terms", style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w500)),
+                      const SizedBox(width: 16),
+                      Text("Privacy", style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
+        // Floating Cart Icon
+
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          // 1. HORIZONTAL CATEGORY BAR
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemBuilder: (context, index) {
-                bool isActive = selectedCategory == categories[index];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedCategory = categories[index];
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          categories[index],
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                            color: isActive ? Colors.black : Colors.grey[500],
-                          ),
-                        ),
-                        if (isActive)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            height: 4,
-                            width: 24, // Wider indicator
-                            decoration: const BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.all(Radius.circular(2)),
-                            ),
-                          )
-                        else
-                          const SizedBox(height: 4), // Placeholder to prevent jumping
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // 2. FILTERED EVENTS LIST
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _buildEventList(),
-            ),
-          ),
-
-          // 3. FOOTER
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Logo (Placeholder)
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text("44", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                ),
-
-                // Social Icon (Placeholder)
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(LucideIcons.instagram, size: 16, color: Colors.grey),
-                ),
-
-                // Links
-                Row(
-                  children: [
-                    Text("FAQ", style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w500)),
-                    const SizedBox(width: 16),
-                    Text("Terms", style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w500)),
-                    const SizedBox(width: 16),
-                    Text("Privacy", style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w500)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      // Floating Cart Icon
-
     );
   }
+
+  // Use default back behavior from the navigation stack.
 
 
 

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
+import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,20 +39,72 @@ class _ProfileContentState extends State<ProfileContent> {
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _showImagePickerSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _sheetTile(
+                icon: LucideIcons.camera,
+                label: 'Take Photo',
+                onTap: () => _handlePick(ImageSource.camera),
+              ),
+              _sheetTile(
+                icon: LucideIcons.image,
+                label: 'Choose from Gallery',
+                onTap: () => _handlePick(ImageSource.gallery),
+              ),
+              if (_profileImage != null ||
+                  Provider.of<UserProvider>(context, listen: false).profileImage != null)
+                _sheetTile(
+                  icon: LucideIcons.trash2,
+                  label: 'Remove Photo',
+                  isDestructive: true,
+                  onTap: _removeImage,
+                ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
-    if (pickedFile != null) {
-      File selectedFile = File(pickedFile.path);
+  Future<void> _handlePick(ImageSource source) async {
+    Navigator.pop(context);
+    final pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile == null) return;
+    final selectedFile = File(pickedFile.path);
+    Provider.of<UserProvider>(context, listen: false)
+        .updateProfileImage(selectedFile);
+    setState(() {
+      _profileImage = selectedFile;
+    });
+  }
 
-      // 1. Provider ko update karein (Ye Home page ko notify karega)
-      Provider.of<UserProvider>(context, listen: false).updateProfileImage(selectedFile);
-
-      // 2. Local state update karein (Isi page ke liye)
-      setState(() {
-        _profileImage = selectedFile;
-      });
-    }
+  void _removeImage() {
+    Navigator.pop(context);
+    Provider.of<UserProvider>(context, listen: false).clearProfileImage();
+    setState(() {
+      _profileImage = null;
+    });
   }
 
   static const _navItems = [
@@ -155,7 +208,7 @@ class _ProfileContentState extends State<ProfileContent> {
                 Consumer<UserProvider>(
                   builder: (context, userProvider, child) {
                     return GestureDetector(
-                      onTap: _pickImage,
+                      onTap: _showImagePickerSheet,
                       child: CircleAvatar(
                         radius: 16,
                         backgroundColor: Colors.grey[300],
@@ -191,8 +244,15 @@ class _ProfileContentState extends State<ProfileContent> {
                     ],
                   ),
                 ),
-                const Icon(LucideIcons.logOut,
-                    size: 20, color: Colors.black54),
+                GestureDetector(
+                  onTap: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MinimalLoginPage()),
+                    (route) => false,
+                  ),
+                  child: const Icon(LucideIcons.logOut,
+                      size: 20, color: Colors.black54),
+                ),
               ],
             ),
           ),
@@ -545,7 +605,7 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
 
           const SizedBox(height: 32),
-          _footer(),
+          _footer(context),
         ],
       ),
     );
@@ -674,7 +734,7 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
         ),
         const SizedBox(height: 32),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -697,7 +757,7 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
         ),
         const SizedBox(height: 32),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -779,7 +839,7 @@ class _ProfileContentState extends State<ProfileContent> {
           ],
         )),
         const SizedBox(height: 32),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -802,7 +862,7 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
         ),
         const SizedBox(height: 32),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -940,7 +1000,7 @@ class _ProfileContentState extends State<ProfileContent> {
         const SizedBox(height: 28),
         _saveBtn(),
         const SizedBox(height: 16),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -1050,7 +1110,7 @@ class _ProfileContentState extends State<ProfileContent> {
         const SizedBox(height: 28),
         _saveBtn(),
         const SizedBox(height: 16),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -1105,7 +1165,7 @@ class _ProfileContentState extends State<ProfileContent> {
         const SizedBox(height: 28),
         _saveBtn(),
         const SizedBox(height: 16),
-        _footer(),
+        _footer(context),
       ],
     );
   }
@@ -1404,7 +1464,7 @@ class _ProfileContentState extends State<ProfileContent> {
   );
 
   // Footer
-  Widget _footer() => Row(
+  Widget _footer(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       Container(
@@ -1423,13 +1483,50 @@ class _ProfileContentState extends State<ProfileContent> {
       Row(
         children: ['FAQ','Terms','Privacy'].map((l) => Padding(
           padding: const EdgeInsets.only(left: 16),
-          child: Text(l,
-              style: GoogleFonts.inter(
-                  fontSize: 12, color: Colors.black54)),
+          child: GestureDetector(
+            onTap: () => _showComingSoon(context),
+            child: Text(l,
+                style: GoogleFonts.inter(
+                    fontSize: 12, color: Colors.black54)),
+          ),
         )).toList(),
       ),
     ],
   );
+
+  Widget _sheetTile({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.black87),
+      title: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          color: isDestructive ? Colors.red : Colors.black87,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Coming soon',
+          style: GoogleFonts.inter(color: Colors.white),
+        ),
+        backgroundColor: Colors.black,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

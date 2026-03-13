@@ -10,4 +10,9 @@ class UserProvider extends ChangeNotifier {
     _profileImage = newImage;
     notifyListeners();
   }
+
+  void clearProfileImage() {
+    _profileImage = null;
+    notifyListeners();
+  }
 }

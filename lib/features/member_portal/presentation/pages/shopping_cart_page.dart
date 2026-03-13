@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/features/member_portal/domain/models/cart_item.dart';
 import 'package:pitstop/core/providers/cart_provider.dart';
-import 'package:pitstop/features/member_portal/presentation/pages/checkout_delivery_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/checkout_details_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/explore_events_page.dart';
 
 class ShoppingCartPage extends StatelessWidget {
@@ -156,7 +156,7 @@ class ShoppingCartPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const CheckoutDeliveryPage(),
+                        pageBuilder: (context, animation, secondaryAnimation) => const CheckoutDetailsPage(),
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           const begin = Offset(0.0, 1.0);
                           const end = Offset.zero;
@@ -194,10 +194,9 @@ class ShoppingCartPage extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             ),
             onPressed: () {
-              Navigator.pushAndRemoveUntil(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ExploreEventsPage()),
-                (route) => false,
               );
             },
             child: Text(

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/orders_list_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/house_account_page.dart';
+import 'package:pitstop/core/providers/order_history_provider.dart';
+import 'package:pitstop/core/models/order_record.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Notifications Page
@@ -8,17 +13,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 //  Shows:  • My Orders table  (Order ID / Date / Items / Price / Status)
 //          • House Account    (pending invoices)
 // ─────────────────────────────────────────────────────────────────────────────
-
-// ── Sample order data (replace with real API data later) ─────────────────────
-const List<Map<String, String>> _kOrders = [
-  {
-    'id':     '1491969',
-    'date':   'Feb 21, 2026',
-    'item':   'PETROL HOUR Ticket',
-    'price':  '€0.00',
-    'status': 'COMPLETED',
-  },
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 class NotificationsPage extends StatelessWidget {
@@ -79,13 +73,27 @@ class NotificationsPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── My Orders section ─────────────────────────────────────
-                    _sectionHeader(
-                      title:    'My Orders',
-                      badge:    _kOrders.length,
-                      onSeeAll: () {},
+                    Consumer<OrderHistoryProvider>(
+                      builder: (context, historyProvider, child) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sectionHeader(
+                              title:    'My Orders',
+                              badge:    historyProvider.orders.length,
+                              onSeeAll: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const OrdersListPage()),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            historyProvider.orders.isEmpty
+                                ? _emptyOrders()
+                                : _ordersTable(context, historyProvider.orders),
+                          ],
+                        );
+                      },
                     ),
-                    const SizedBox(height: 12),
-                    _ordersTable(context),
 
                     const SizedBox(height: 36),
 
@@ -93,7 +101,10 @@ class NotificationsPage extends StatelessWidget {
                     _sectionHeader(
                       title:    'House Account',
                       badge:    0,
-                      onSeeAll: () {},
+                      onSeeAll: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HouseAccountPage()),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -106,7 +117,7 @@ class NotificationsPage extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 48),
-                    _footer(),
+                    _footer(context),
                   ],
                 ),
               ),
@@ -169,7 +180,7 @@ class NotificationsPage extends StatelessWidget {
   }
 
   // ── Orders table ───────────────────────────────────────────────────────────
-  Widget _ordersTable(BuildContext context) {
+  Widget _ordersTable(BuildContext context, List<OrderRecord> orders) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.55),
@@ -192,18 +203,18 @@ class NotificationsPage extends StatelessWidget {
           ),
           Divider(height: 1, color: _divider),
           // Data rows
-          ..._kOrders.map((order) => Column(
+          ...orders.map((order) => Column(
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 child: Row(
                   children: [
-                    _colCell(order['id']!,    flex: 2),
-                    _colCell(order['date']!,  flex: 2),
+                    _colCell(order.id,    flex: 2),
+                    _colCell(order.date,  flex: 2),
                     Expanded(
                       flex: 5,
                       child: Text(
-                        order['item']!,
+                        order.itemSummary,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           color: _amber,
@@ -211,7 +222,7 @@ class NotificationsPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    _colCell(order['price']!, flex: 2, align: TextAlign.right),
+                    _colCell(order.price, flex: 2, align: TextAlign.right),
                     Expanded(
                       flex: 2,
                       child: Align(
@@ -224,7 +235,7 @@ class NotificationsPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            order['status']!,
+                            order.status,
                             style: GoogleFonts.inter(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
@@ -281,8 +292,19 @@ class NotificationsPage extends StatelessWidget {
         ),
       );
 
+  Widget _emptyOrders() {
+    return Text(
+      'No orders yet.',
+      style: GoogleFonts.inter(
+        fontSize: 13,
+        color: Colors.black54,
+        fontStyle: FontStyle.italic,
+      ),
+    );
+  }
+
   // ── Footer ─────────────────────────────────────────────────────────────────
-  Widget _footer() => Row(
+  Widget _footer(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
@@ -299,14 +321,32 @@ class NotificationsPage extends StatelessWidget {
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) => Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                l,
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+              child: GestureDetector(
+                onTap: () => _showComingSoon(context),
+                child: Text(
+                  l,
+                  style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                ),
               ),
             )).toList(),
           ),
         ],
       );
+
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Coming soon',
+          style: GoogleFonts.inter(color: Colors.white),
+        ),
+        backgroundColor: Colors.black,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

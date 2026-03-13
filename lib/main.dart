@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/core/providers/cart_provider.dart';
+import 'package:pitstop/core/providers/order_history_provider.dart';
 
 void main() {
   runApp(
@@ -12,6 +13,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => OrderHistoryProvider()),
 
       ],
       child: const PiTStopApp(),
