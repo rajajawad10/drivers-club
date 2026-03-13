@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'package:pitstop/core/providers/user_provider.dart';
 
 class MemberHomePage extends StatefulWidget {
   const MemberHomePage({super.key});
@@ -92,12 +94,21 @@ class _MobileLayout extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 8),
-      const Padding(
-        padding: EdgeInsets.only(right: 16.0),
-        child:  CircleAvatar(
-          radius: 16,
-          backgroundImage:
-          AssetImage('assets/images/user_profile.png'),
+      // REPLACE YOUR ENTIRE constPadding BLOCK WITH THIS:
+      Padding(
+        padding: const EdgeInsets.only(right: 16.0), // The 'const' goes here
+        child: Consumer<UserProvider>(
+          // The Consumer rebuilds this part whenever notifyListeners() is called in UserProvider
+          builder: (context, userProvider, child) {
+            return CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.grey[200],
+              // Check if provider has a picked image, otherwise show default asset
+              backgroundImage: userProvider.profileImage != null
+                  ? FileImage(userProvider.profileImage!) // Display user-selected file
+                  : const AssetImage('assets/images/user_profile.png') as ImageProvider, // Default profile pic
+            );
+          },
         ),
       ),
     ],

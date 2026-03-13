@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'add_to_cart_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/add_to_cart_page.dart';
 
 class BalancedEventDetailsPage extends StatelessWidget {
+  final String eventId;
   final String eventName;
   final String category;
   final String description;
@@ -15,6 +16,7 @@ class BalancedEventDetailsPage extends StatelessWidget {
 
   const BalancedEventDetailsPage({
     super.key,
+    this.eventId = "event-1",
     this.eventName = "GEOPOLITICAL LUNCH",
     this.category = "LIFESTYLE",
     this.description = "Join us for an exclusive afternoon discussing global trends with industry leaders.",
@@ -182,8 +184,11 @@ class BalancedEventDetailsPage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddToCartPage(
+                      eventId: eventId,
                       eventName: eventName,
                       price: price,
+                      imageUrl: image,
+                      date: date,
                     ),
                   ),
                 );

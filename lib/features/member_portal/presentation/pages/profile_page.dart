@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'notifications_page.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:pitstop/core/providers/user_provider.dart';
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Profile / Account Page
@@ -29,6 +34,26 @@ class _ProfileContentState extends State<ProfileContent> {
   int _scheduleTab    = 0;  // 0=Upcoming, 1=Past
   int _walletTab      = 0;  // 0=Payment Methods, 1=Tickets, 2=Vouchers
   int _billingTab     = 0;  // 0=Statements, 1=Dues, 2=Orders, 3=House Account
+
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      File selectedFile = File(pickedFile.path);
+
+      // 1. Provider ko update karein (Ye Home page ko notify karega)
+      Provider.of<UserProvider>(context, listen: false).updateProfileImage(selectedFile);
+
+      // 2. Local state update karein (Isi page ke liye)
+      setState(() {
+        _profileImage = selectedFile;
+      });
+    }
+  }
+
   static const _navItems = [
     'Memberships', 'Profile', 'My Schedule', 'Wallet', 'Billing',
   ];
@@ -127,10 +152,21 @@ class _ProfileContentState extends State<ProfileContent> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundImage:
-                  AssetImage('assets/images/user_profile.png'),
+                Consumer<UserProvider>(
+                  builder: (context, userProvider, child) {
+                    return GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.grey[300],
+                        backgroundImage: userProvider.profileImage != null
+                            ? FileImage(userProvider.profileImage!)
+                            : (_profileImage != null
+                            ? FileImage(_profileImage!)
+                            : const AssetImage('assets/images/user_profile.png') as ImageProvider),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 14),
                 Expanded(

@@ -1,12 +1,22 @@
-
 import 'package:pitstop/core/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
-
-
+import 'package:pitstop/core/providers/user_provider.dart';
+import 'package:pitstop/core/providers/cart_provider.dart';
 
 void main() {
-  runApp(const PiTStopApp());
+  runApp(
+
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+
+      ],
+      child: const PiTStopApp(),
+    ),
+  );
 }
 
 class PiTStopApp extends StatelessWidget {
@@ -19,7 +29,7 @@ class PiTStopApp extends StatelessWidget {
       title: 'Drivers Club',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system, // Or user preference
+      themeMode: ThemeMode.system,
       home: const MinimalLoginPage(),
     );
   }

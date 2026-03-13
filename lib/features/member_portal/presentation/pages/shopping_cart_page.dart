@@ -1,38 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'checkout_delivery_page.dart';
+import 'package:provider/provider.dart';
+import 'package:pitstop/features/member_portal/domain/models/cart_item.dart';
+import 'package:pitstop/core/providers/cart_provider.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/checkout_delivery_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/explore_events_page.dart';
 
-class ShoppingCartPage extends StatefulWidget {
-  final String eventName;
-  final String date;
-  final String time;
-  final String image;
-  final double price;
-  final int initialQuantity;
-
-  const ShoppingCartPage({
-    super.key,
-    this.eventName = "PETROL HOUR",
-    this.date = "Thursday, February 19th 2026",
-    this.time = "6:00 PM",
-    this.image = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200",
-    this.price = 0.00,
-    this.initialQuantity = 1,
-  });
-
-  @override
-  State<ShoppingCartPage> createState() => _ShoppingCartPageState();
-}
-
-class _ShoppingCartPageState extends State<ShoppingCartPage> {
-  late int quantity;
-
-  @override
-  void initState() {
-    super.initState();
-    quantity = widget.initialQuantity;
-  }
+class ShoppingCartPage extends StatelessWidget {
+  const ShoppingCartPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,14 +23,19 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         ),
       ),
       body: SafeArea(
-        child: quantity > 0 
-          ? _buildCartContent() 
-          : _buildEmptyState(),
+        child: Consumer<CartProvider>(
+          builder: (context, cartProvider, child) {
+            if (cartProvider.isEmpty) {
+              return _buildEmptyState(context);
+            }
+            return _buildCartContent(context, cartProvider);
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -64,7 +45,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           const Text("Your cart is empty!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context), 
+            onPressed: () => Navigator.pop(context),
             child: const Text("Back to Events"),
           ),
         ],
@@ -72,314 +53,308 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     );
   }
 
-  Widget _buildCartContent() {
+  Widget _buildCartContent(BuildContext context, CartProvider cartProvider) {
     final size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
     final double screenHeight = size.height;
     final double textScale = screenWidth / 375.0;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06, vertical: screenHeight * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. HEADER
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                         Text(
-                          "SHOPPING CART",
-                          style: GoogleFonts.inter(
-                            fontSize: 24 * textScale,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF1E1E2C),
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                        Text(
-                          "$quantity Item${quantity != 1 ? 's' : ''}",
-                          style: GoogleFonts.inter(
-                            fontSize: 14 * textScale,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: screenHeight * 0.04),
-
-                    // 2. CART ITEM
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Circular Thumbnail
-                          CircleAvatar(
-                            radius: screenWidth * 0.09, // Responsive radius
-                            backgroundColor: Colors.grey[300],
-                            backgroundImage: NetworkImage(widget.image),
-                          ),
-                          SizedBox(width: screenWidth * 0.04),
-                          // Details Column
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.eventName.toUpperCase(),
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 16 * textScale,
-                                    color: const Color(0xFF1E1E2C),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  widget.eventName, // Subtitle/Type
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12 * textScale,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  widget.date,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12 * textScale,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                Text(
-                                  widget.time,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12 * textScale,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                SizedBox(height: screenHeight * 0.02),
-                                // Quantity & Trash
-                                Row(
-                                  children: [
-                                    _quantityBtn(LucideIcons.minus, () => setState(() => quantity > 1 ? quantity-- : null)),
-                                    _quantityDisplay(quantity),
-                                    _quantityBtn(LucideIcons.plus, () => setState(() => quantity++)),
-                                    SizedBox(width: screenWidth * 0.02),
-                                    // Delete Button (Compact)
-                                    InkWell(
-                                      onTap: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text("Remove Item"),
-                                            content: const Text("Are you sure you want to remove this event from your cart?"),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text("CANCEL"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    quantity = 0; 
-                                                  });
-                                                  Navigator.pop(context); // Close dialog
-                                                  
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text("Item removed from cart")),
-                                                  );
-                                                },
-                                                child: const Text("DELETE", style: TextStyle(color: Colors.red)),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0), // Reduced padding for compact layout
-                                        child: Icon(Icons.delete_outline, size: 20 * textScale, color: Colors.black54),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: screenWidth * 0.02),
-                          // Price & Timer
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                widget.price == 0 ? "Free" : "€${widget.price.toStringAsFixed(2)}",
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16 * textScale,
-                                  color: const Color(0xFF1E1E2C),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                "Ticket Reserved For",
-                                style: GoogleFonts.inter(
-                                  fontSize: 10 * textScale,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "04:58",
-                                style: GoogleFonts.inter(
-                                  fontSize: 18 * textScale,
-                                  fontWeight: FontWeight.w300,
-                                  color: const Color(0xFF1E1E2C),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.02),
-                    const Divider(color: Colors.grey, thickness: 0.5),
-                    SizedBox(height: screenHeight * 0.02),
-
-                    // 3. SUBTOTAL
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          "Subtotal: ",
-                          style: GoogleFonts.inter(
-                            fontSize: 16 * textScale,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Text(
-                          "€${(widget.price * quantity).toStringAsFixed(2)}",
-                          style: GoogleFonts.inter(
-                            fontSize: 18 * textScale,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF1E1E2C),
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Use Spacer to push buttons to bottom in IntrinsicHeight
-                    const Spacer(), 
-                    SizedBox(height: screenHeight * 0.04),
-
-                    // 4. ACTION BUTTONS
-                    Column(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          height: screenHeight * 0.07, // Dynamic height
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            ),
-                            onPressed: () {
-                              if (quantity > 0) {
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) => const CheckoutDeliveryPage(),
-                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                      const begin = Offset(0.0, 1.0);
-                                      const end = Offset.zero;
-                                      const curve = Curves.ease;
-
-                                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-                                      return SlideTransition(
-                                        position: animation.drive(tween),
-                                        child: child,
-                                      );
-                                    },
-                                  ),
-                                );
-                              }
-                            },
-                            child: Text(
-                              "PROCEED TO CHECKOUT",
-                              style: GoogleFonts.inter(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13 * textScale,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        SizedBox(
-                          width: double.infinity,
-                          height: screenHeight * 0.07, // Dynamic height
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              side: const BorderSide(color: Colors.black12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              "CONTINUE SHOPPING",
-                              style: GoogleFonts.inter(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13 * textScale,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: screenHeight * 0.03),
-                  ],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06, vertical: screenHeight * 0.02),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "SHOPPING CART",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 24 * textScale,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1E1E2C),
+                  letterSpacing: 1.0,
                 ),
               ),
+              Text(
+                "${cartProvider.totalCount} Item${cartProvider.totalCount != 1 ? 's' : ''}",
+                style: GoogleFonts.inter(
+                  fontSize: 13 * textScale,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: screenHeight * 0.03),
+          Expanded(
+            child: ListView.separated(
+              itemCount: cartProvider.items.length,
+              separatorBuilder: (_, __) => const Divider(height: 24, color: Colors.black12),
+              itemBuilder: (context, index) {
+                final item = cartProvider.items[index];
+                return _CartItemTile(
+                  item: item,
+                  onIncrease: () => cartProvider.increaseQty(item.id),
+                  onDecrease: () => cartProvider.decreaseQty(item.id),
+                  onRemove: () => cartProvider.removeItem(item.id),
+                );
+              },
             ),
           ),
-        );
-      }
-    );
-  }
-
-  Widget _quantityBtn(IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: Icon(icon, size: 16, color: Colors.black87),
+          _buildSummary(context, cartProvider, textScale, screenHeight),
+        ],
       ),
     );
   }
 
-  Widget _quantityDisplay(int val) {
+  Widget _buildSummary(
+    BuildContext context,
+    CartProvider cartProvider,
+    double textScale,
+    double screenHeight,
+  ) {
+    return Column(
+      children: [
+        const Divider(color: Colors.black12, thickness: 1),
+        SizedBox(height: screenHeight * 0.02),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Subtotal",
+              style: GoogleFonts.inter(
+                fontSize: 16 * textScale,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            Text(
+              "€${cartProvider.totalPrice.toStringAsFixed(2)}",
+              style: GoogleFonts.inter(
+                fontSize: 18 * textScale,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF1E1E2C),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: screenHeight * 0.03),
+        SizedBox(
+          width: double.infinity,
+          height: screenHeight * 0.07,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            onPressed: cartProvider.isEmpty
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) => const CheckoutDeliveryPage(),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(0.0, 1.0);
+                          const end = Offset.zero;
+                          const curve = Curves.ease;
+
+                          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: child,
+                          );
+                        },
+                      ),
+                    );
+                  },
+            child: Text(
+              "PROCEED TO CHECKOUT",
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 13 * textScale,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: screenHeight * 0.02),
+        SizedBox(
+          width: double.infinity,
+          height: screenHeight * 0.07,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              side: const BorderSide(color: Colors.black12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const ExploreEventsPage()),
+                (route) => false,
+              );
+            },
+            child: Text(
+              "CONTINUE SHOPPING",
+              style: GoogleFonts.inter(
+                color: Colors.black,
+                fontWeight: FontWeight.w800,
+                fontSize: 13 * textScale,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: screenHeight * 0.02),
+      ],
+    );
+  }
+}
+
+class _CartItemTile extends StatelessWidget {
+  final CartItem item;
+  final VoidCallback onIncrease;
+  final VoidCallback onDecrease;
+  final VoidCallback onRemove;
+
+  const _CartItemTile({
+    required this.item,
+    required this.onIncrease,
+    required this.onDecrease,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+    final double textScale = screenWidth / 375.0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: screenWidth * 0.085,
+          backgroundColor: Colors.grey[300],
+          backgroundImage: item.image.isNotEmpty ? NetworkImage(item.image) : null,
+          child: item.image.isEmpty
+              ? const Icon(LucideIcons.image, size: 20, color: Colors.grey)
+              : null,
+        ),
+        SizedBox(width: screenWidth * 0.04),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.title.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15 * textScale,
+                  color: const Color(0xFF1E1E2C),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.subtitle,
+                style: GoogleFonts.inter(
+                  fontSize: 12 * textScale,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _QtyButton(icon: LucideIcons.minus, onTap: onDecrease),
+                  _QtyDisplay(value: item.quantity),
+                  _QtyButton(icon: LucideIcons.plus, onTap: onIncrease),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () => _confirmRemove(context),
+                    child: const Icon(Icons.delete_outline, size: 18, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Text(
+          item.price == 0 ? "Free" : "€${item.price.toStringAsFixed(2)}",
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w800,
+            fontSize: 14 * textScale,
+            color: const Color(0xFF1E1E2C),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmRemove(BuildContext context) async {
+    final shouldRemove = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Remove Item"),
+        content: const Text("Are you sure you want to remove this item from your cart?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("CANCEL"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("DELETE", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (shouldRemove == true) {
+      onRemove();
+    }
+  }
+}
+
+class _QtyButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _QtyButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Icon(icon, size: 16, color: Colors.black87),
+      ),
+    );
+  }
+}
+
+class _QtyDisplay extends StatelessWidget {
+  final int value;
+
+  const _QtyDisplay({required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       child: Text(
-        val.toString(),
+        value.toString(),
         style: GoogleFonts.inter(
           fontWeight: FontWeight.bold,
           color: Colors.black,

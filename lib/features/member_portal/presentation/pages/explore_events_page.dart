@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'balanced_event_details_page.dart';
-import 'add_to_cart_page.dart';
-import 'shopping_cart_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/balanced_event_details_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/shopping_cart_page.dart';
 
 class ExploreEventsPage extends StatefulWidget {
   const ExploreEventsPage({super.key});
@@ -1091,6 +1090,7 @@ class _EventCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => BalancedEventDetailsPage(
+            eventId: title,
             eventName: title,
             category: tag,
             description: description,
@@ -1438,6 +1438,7 @@ class EventSearchDelegate extends SearchDelegate {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => BalancedEventDetailsPage(
+                  eventId: event['title'].toString(),
                   eventName: event['title'],
                   category: (event['tags'] as List).firstOrNull ?? "Event",
                   description: event['description'],
