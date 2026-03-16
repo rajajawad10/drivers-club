@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
+import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1431,19 +1432,77 @@ class _ProfileContentState extends State<ProfileContent> {
     width: 220,
     height: 48,
     child: ElevatedButton(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Changes saved!',
-                style: GoogleFonts.inter(
-                    color: Colors.white)),
-            backgroundColor: Colors.black,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4)),
-          ),
-        );
+      onPressed: () async {
+        // Only run change password if fields are filled
+        if (_currentPw.text.isNotEmpty && _newPw.text.isNotEmpty) {
+          // Check new password and confirmation match
+          if (_newPw.text != _confirmPw.text) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('New password and confirmation do not match!',
+                    style: GoogleFonts.inter(color: Colors.white)),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
+              ),
+            );
+            return;
+          }
+
+          // Call change password API
+          final auth = context.read<AuthProvider>();
+          final success = await auth.changePassword(
+            currentPassword: _currentPw.text.trim(),
+            newPassword:     _newPw.text.trim(),
+          );
+
+          if (!mounted) return;
+
+          if (success) {
+            // Clear password fields after success
+            _currentPw.clear();
+            _newPw.clear();
+            _confirmPw.clear();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Password changed successfully!',
+                    style: GoogleFonts.inter(color: Colors.white)),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(auth.errorMessage,
+                    style: GoogleFonts.inter(color: Colors.white)),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
+              ),
+            );
+          }
+        } else {
+          // No password fields filled — normal save
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Changes saved!',
+                  style: GoogleFonts.inter(color: Colors.white)),
+              backgroundColor: Colors.black,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4)),
+            ),
+          );
+        }
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.black,
