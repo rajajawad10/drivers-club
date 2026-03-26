@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -12,6 +14,7 @@ class BalancedEventDetailsPage extends StatelessWidget {
   final String time;
   final String location;
   final String image;
+  final Uint8List? imageBytes;
   final double price;
 
   const BalancedEventDetailsPage({
@@ -24,6 +27,7 @@ class BalancedEventDetailsPage extends StatelessWidget {
     this.time = "12:00 PM",
     this.location = "Club House",
     this.image = "https://images.unsplash.com/photo-1528605248644-14dd04022ae1?w=800",
+    this.imageBytes,
     this.price = 0.0,
   });
 
@@ -59,21 +63,10 @@ class BalancedEventDetailsPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 2. Proportional Image Height
-              if (image.isNotEmpty)
+              if (image.isNotEmpty || imageBytes != null)
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-                  child: Image.network(
-                    image,
-                    height: screenH * 0.3, // Exactly 30% of screen height
-                    width: screenW,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: screenH * 0.3,
-                      width: screenW,
-                      color: Colors.grey[200],
-                      child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
-                    ),
-                  ),
+                  child: _buildImage(screenW, screenH),
                 ),
   
               Padding(
@@ -150,6 +143,42 @@ class BalancedEventDetailsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImage(double screenW, double screenH) {
+    final bytes = imageBytes ?? _decodeDataImage(image);
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
+        height: screenH * 0.3,
+        width: screenW,
+        fit: BoxFit.cover,
+      );
+    }
+
+    return Image.network(
+      image,
+      height: screenH * 0.3,
+      width: screenW,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: screenH * 0.3,
+        width: screenW,
+        color: Colors.grey[200],
+        child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
+      ),
+    );
+  }
+
+  Uint8List? _decodeDataImage(String value) {
+    if (!value.startsWith('data:image')) return null;
+    final parts = value.split(',');
+    if (parts.length < 2) return null;
+    try {
+      return base64Decode(parts[1]);
+    } catch (_) {
+      return null;
+    }
   }
 
   Widget _buildDetailsCard(BuildContext context) {

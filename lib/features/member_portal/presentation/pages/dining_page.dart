@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'notifications_page.dart';
 import 'dining_booking_page.dart';
+import 'package:pitstop/core/utils/external_links.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Dining Page  — matches the reference design exactly
@@ -951,8 +952,11 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   size: 12, color: Colors.black87),
             ),
           ),
-          const Icon(LucideIcons.instagram,
-              size: 18, color: Colors.black54),
+          GestureDetector(
+            onTap: ExternalLinks.openInstagram,
+            child: const Icon(LucideIcons.instagram,
+                size: 18, color: Colors.black54),
+          ),
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) =>
               Padding(
@@ -1376,8 +1380,11 @@ class _PrivateDiningDetailPageState
                   size: 12, color: Colors.black87),
             ),
           ),
-          const Icon(LucideIcons.instagram,
-              size: 18, color: Colors.black54),
+          GestureDetector(
+            onTap: ExternalLinks.openInstagram,
+            child: const Icon(LucideIcons.instagram,
+                size: 18, color: Colors.black54),
+          ),
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) =>
               Padding(

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
+import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
 import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
 
@@ -1537,8 +1538,11 @@ class _ProfileContentState extends State<ProfileContent> {
               size: 12, color: Colors.black87),
         ),
       ),
-      const Icon(LucideIcons.instagram,
-          size: 18, color: Colors.black54),
+      GestureDetector(
+        onTap: ExternalLinks.openInstagram,
+        child: const Icon(LucideIcons.instagram,
+            size: 18, color: Colors.black54),
+      ),
       Row(
         children: ['FAQ','Terms','Privacy'].map((l) => Padding(
           padding: const EdgeInsets.only(left: 16),

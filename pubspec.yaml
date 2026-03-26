@@ -45,6 +45,7 @@ dependencies:
   provider: ^6.1.1
   http: ^1.2.0                      # HTTP API calls
   flutter_secure_storage: ^9.0.0    # Save auth token securely
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

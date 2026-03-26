@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pitstop/core/utils/external_links.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Club Benefits Page
@@ -425,7 +426,10 @@ class _ClubBenefitsContentState extends State<ClubBenefitsContent> {
             ),
           ),
           // Instagram
-          const Icon(LucideIcons.instagram, size: 20, color: Colors.black54),
+          GestureDetector(
+            onTap: ExternalLinks.openInstagram,
+            child: const Icon(LucideIcons.instagram, size: 20, color: Colors.black54),
+          ),
           // Links
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((label) {

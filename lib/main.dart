@@ -6,6 +6,7 @@ import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/core/providers/cart_provider.dart';
 import 'package:pitstop/core/providers/order_history_provider.dart';
 import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
+import 'package:pitstop/features/member_portal/presentation/providers/events_provider.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/member_home_page.dart';
 
@@ -23,6 +24,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderHistoryProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => EventsProvider()),
       ],
       child: PiTStopApp(isLoggedIn: isLoggedIn),
     ),

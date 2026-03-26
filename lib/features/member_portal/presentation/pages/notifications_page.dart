@@ -6,6 +6,7 @@ import 'package:pitstop/features/member_portal/presentation/pages/orders_list_pa
 import 'package:pitstop/features/member_portal/presentation/pages/house_account_page.dart';
 import 'package:pitstop/core/providers/order_history_provider.dart';
 import 'package:pitstop/core/models/order_record.dart';
+import 'package:pitstop/core/utils/external_links.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Notifications Page
@@ -317,7 +318,10 @@ class NotificationsPage extends StatelessWidget {
               child: Icon(LucideIcons.crown, size: 12, color: Colors.black87),
             ),
           ),
-          const Icon(LucideIcons.instagram, size: 18, color: Colors.black54),
+          GestureDetector(
+            onTap: ExternalLinks.openInstagram,
+            child: const Icon(LucideIcons.instagram, size: 18, color: Colors.black54),
+          ),
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) => Padding(
               padding: const EdgeInsets.only(left: 16),

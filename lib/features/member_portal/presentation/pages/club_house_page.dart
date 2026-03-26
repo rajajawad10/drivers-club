@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'booking_form_page.dart';
 import 'notifications_page.dart';
+import 'package:pitstop/core/utils/external_links.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Club House Page  –  Matches the reference design exactly:
@@ -457,8 +458,11 @@ class ClubDetailPage extends StatelessWidget {
                       ),
                     ),
                     // Socials
-                    const Icon(LucideIcons.instagram,
-                        size: 22, color: Colors.black54),
+                    GestureDetector(
+                      onTap: ExternalLinks.openInstagram,
+                      child: const Icon(LucideIcons.instagram,
+                          size: 22, color: Colors.black54),
+                    ),
                     // Links
                     Row(
                       children: [

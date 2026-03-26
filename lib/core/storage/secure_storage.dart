@@ -11,6 +11,7 @@ class SecureStorage {
   static const _userEmailKey    = 'user_email';
   static const _firstNameKey    = 'first_name';
   static const _lastNameKey     = 'last_name';
+  static const _crmIdKey        = 'crm_id';
 
   // ── Access Token ───────────────────────────────────────────────────────────
 
@@ -44,12 +45,16 @@ class SecureStorage {
     required String email,
     required String firstName,
     required String lastName,
+    String? crmId,
   }) async {
     await _storage.write(key: _userIdKey,    value: userId);
     await _storage.write(key: _userNameKey,  value: name);
     await _storage.write(key: _userEmailKey, value: email);
     await _storage.write(key: _firstNameKey, value: firstName);
     await _storage.write(key: _lastNameKey,  value: lastName);
+    if (crmId != null && crmId.isNotEmpty) {
+      await _storage.write(key: _crmIdKey, value: crmId);
+    }
   }
 
   static Future<Map<String, String?>> getUserInfo() async {
@@ -59,7 +64,12 @@ class SecureStorage {
       'email':     await _storage.read(key: _userEmailKey),
       'firstName': await _storage.read(key: _firstNameKey),
       'lastName':  await _storage.read(key: _lastNameKey),
+      'crmId':     await _storage.read(key: _crmIdKey),
     };
+  }
+
+  static Future<String?> getCrmId() async {
+    return await _storage.read(key: _crmIdKey);
   }
 
   // ── Clear everything on logout ─────────────────────────────────────────────

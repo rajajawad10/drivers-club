@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +8,10 @@ import 'package:provider/provider.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/balanced_event_details_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/shopping_cart_page.dart';
 import 'package:pitstop/core/providers/cart_provider.dart';
+import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/member_home_page.dart';
+import 'package:pitstop/features/member_portal/presentation/providers/events_provider.dart';
+import 'package:pitstop/features/member_portal/domain/models/event_model.dart';
 
 class ExploreEventsPage extends StatefulWidget {
   const ExploreEventsPage({super.key});
@@ -17,7 +22,6 @@ class ExploreEventsPage extends StatefulWidget {
 
 class _ExploreEventsPageState extends State<ExploreEventsPage> {
   String selectedCategory = "All"; // Default to All
-  final List<String> categories = ["All", "Party & Drinks", "Food", "Personality", "Private Viewing", "Games", "Action", "Cars Viewing", "Culture", "Family", "Off site"];
 
   // ── Filter State ────────────────────────────────────────────────────────────
   Set<String> _selectedFilterCategories = {};
@@ -25,24 +29,69 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  // Filter categories exactly as in image
-  final List<String> _filterCategories = [
-    "PARTY & DRINKS", "FOOD", "PERSONALITY", "PRIVATE VIEWING",
-    "GAMES", "ACTION", "CARS VIEWING", "CULTURE", "FAMILY", "OFF SITE",
-  ];
-
   // Active filter count (for badge on button)
   int get _activeFilterCount =>
       _selectedFilterCategories.length +
           (_selectedDateFilter != null || _startDate != null ? 1 : 0);
 
   // ── Show Filter Bottom Sheet ────────────────────────────────────────────────
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<EventsProvider>().loadEvents();
+      }
+    });
+  }
+
+  String _formatCategoryLabel(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return '';
+    return trimmed
+        .split(RegExp(r'\s+'))
+        .map((word) => word.isEmpty
+            ? ''
+            : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}')
+        .join(' ');
+  }
+
+  List<String> _buildCategories(List<Map<String, dynamic>> events) {
+    final set = <String>{};
+    for (final event in events) {
+      final raw = (event['category'] ?? '').toString();
+      final label = _formatCategoryLabel(raw);
+      if (label.isNotEmpty) {
+        set.add(label);
+      }
+    }
+    final list = set.toList()..sort();
+    return ['All', ...list];
+  }
+
+  List<String> _buildFilterCategories(List<Map<String, dynamic>> events) {
+    return _buildCategories(events).where((c) => c != 'All').toList();
+  }
+
+  void _syncSelectedCategory(List<String> availableCategories) {
+    if (availableCategories.contains(selectedCategory)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => selectedCategory = 'All');
+    });
+  }
   void _showFilterSheet() {
     // Temp copies so Cancel resets them
     Set<String> tempCats = Set.from(_selectedFilterCategories);
     String? tempDateFilter = _selectedDateFilter;
     DateTime? tempStart = _startDate;
     DateTime? tempEnd = _endDate;
+    final eventsProvider = context.read<EventsProvider>();
+    final effectiveEvents = eventsProvider.events.isNotEmpty
+        ? _mapApiEvents(eventsProvider.events)
+        : allEvents;
+    final filterCategories = _buildFilterCategories(effectiveEvents);
 
     showModalBottomSheet(
       context: context,
@@ -123,7 +172,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
                           Wrap(
                             spacing: 10,
                             runSpacing: 10,
-                            children: _filterCategories.map((cat) {
+                            children: filterCategories.map((cat) {
                               final isSelected = tempCats.contains(cat);
                               return GestureDetector(
                                 onTap: () => setSheetState(() {
@@ -325,10 +374,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
                                 _endDate = tempEnd;
                                 // Apply category filter to main list
                                 if (_selectedFilterCategories.isNotEmpty) {
-                                  selectedCategory = _selectedFilterCategories.first
-                                      .split(' ')
-                                      .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
-                                      .join(' ');
+                                  selectedCategory = _selectedFilterCategories.first;
                                 } else {
                                   selectedCategory = "All";
                                 }
@@ -360,6 +406,12 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final eventsProvider = context.watch<EventsProvider>();
+    final effectiveEvents = eventsProvider.events.isNotEmpty
+        ? _mapApiEvents(eventsProvider.events)
+        : allEvents;
+    final availableCategories = _buildCategories(effectiveEvents);
+    _syncSelectedCategory(availableCategories);
     return WillPopScope(
       onWillPop: () async {
         if (Navigator.of(context).canPop()) {
@@ -400,7 +452,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
                       onTap: () {
                         showSearch(
                           context: context,
-                          delegate: EventSearchDelegate(events: allEvents),
+                          delegate: EventSearchDelegate(events: effectiveEvents),
                         );
                       },
                       decoration: InputDecoration(
@@ -500,14 +552,15 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
               height: 40,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
+                itemCount: availableCategories.length,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemBuilder: (context, index) {
-                  bool isActive = selectedCategory == categories[index];
+                  final category = availableCategories[index];
+                  bool isActive = selectedCategory == category;
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        selectedCategory = categories[index];
+                        selectedCategory = category;
                       });
                     },
                     child: Container(
@@ -516,7 +569,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            categories[index],
+                            availableCategories[index],
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
@@ -546,12 +599,16 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
             const SizedBox(height: 16),
 
             // 2. FILTERED EVENTS LIST
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _buildEventList(),
-              ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: eventsProvider.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : eventsProvider.error.isNotEmpty
+                      ? _errorState(eventsProvider.error)
+                      : _buildEventList(effectiveEvents),
             ),
+          ),
 
             // 3. FOOTER
             Padding(
@@ -569,14 +626,17 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
                     child: const Text("44", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
 
-                  // Social Icon (Placeholder)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      shape: BoxShape.circle,
+                  // Social Icon (Instagram)
+                  GestureDetector(
+                    onTap: ExternalLinks.openInstagram,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(LucideIcons.instagram, size: 16, color: Colors.grey),
                     ),
-                    child: const Icon(LucideIcons.instagram, size: 16, color: Colors.grey),
                   ),
 
                   // Links
@@ -1000,16 +1060,19 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
     },
   ];
 
-  Widget _buildEventList() {
+  Widget _buildEventList(List<Map<String, dynamic>> events) {
     // 1. Filter Logic
     final filteredList = selectedCategory == "All"
-        ? allEvents
-        : allEvents.where((e) {
+        ? events
+        : events.where((e) {
       // Check main category or if tags contain the category (for overlap)
-      final cat = e["category"] as String;
-      final tags = e["tags"] as List<String>;
+      final cat = (e["category"] ?? '').toString().toLowerCase();
+      final tags = (e["tags"] as List<String>)
+          .map((tag) => tag.toLowerCase())
+          .toList();
       // Simple logic: Exact match on category OR tag match
-      return cat == selectedCategory || tags.contains(selectedCategory.toUpperCase());
+      final selected = selectedCategory.toLowerCase();
+      return cat == selected || tags.contains(selected);
     }).toList();
 
     // 2. Empty State
@@ -1052,6 +1115,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
           additionalTags: (event["tags"] as List<String>).sublist(1),
           date: event["date"],
           image: event["image"] ?? "",
+          imageBytes: event["imageBytes"],
           headerColor: event["headerColor"],
           headerIcon: event["headerIcon"],
           index: index,
@@ -1066,6 +1130,96 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
       },
     );
   }
+
+  Widget _errorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(LucideIcons.alertTriangle, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: GoogleFonts.inter(color: Colors.grey[600], fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Debug banner removed.
+
+  List<Map<String, dynamic>> _mapApiEvents(List<EventModel> events) {
+    return events.map((event) {
+      final dateTime = _parseDate(event.startDateTime.isNotEmpty
+          ? event.startDateTime
+          : event.eventDate);
+      final dateLabel = dateTime != null
+          ? "${dateTime.day}\n${_monthShort(dateTime.month)}"
+          : "TBD";
+      final timeLabel = dateTime != null
+          ? _formatTime(dateTime)
+          : "";
+      final imageBytes = _decodeDataImage(event.imageUrl.isNotEmpty
+          ? event.imageUrl
+          : event.mainGraphicUrl);
+
+      final available = event.availableSlots;
+      final total = event.totalSlots;
+      final ticketStatus = total <= 0
+          ? "Tickets Available"
+          : available <= 0
+              ? "Sold Out"
+              : "$available tickets left";
+
+      return {
+        "title": event.title.isNotEmpty ? event.title : event.eventName,
+        "category": event.category.isNotEmpty ? event.category : "All",
+        "date": dateLabel,
+        "image": imageBytes == null ? (event.imageUrl.isNotEmpty ? event.imageUrl : event.mainGraphicUrl) : "",
+        "imageBytes": imageBytes,
+        "tags": [event.category.isNotEmpty ? event.category.toUpperCase() : "EVENT"],
+        "location": event.location,
+        "time": timeLabel,
+        "description": event.summary.isNotEmpty ? event.summary : event.description,
+        "price": "Free",
+        "ticketStatus": ticketStatus,
+      };
+    }).toList();
+  }
+
+  DateTime? _parseDate(String raw) {
+    if (raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  String _monthShort(int month) {
+    const months = [
+      'JAN','FEB','MAR','APR','MAY','JUN',
+      'JUL','AUG','SEP','OCT','NOV','DEC',
+    ];
+    if (month < 1 || month > 12) return 'TBD';
+    return months[month - 1];
+  }
+
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    return "$hour:$minute $period";
+  }
+
+  Uint8List? _decodeDataImage(String value) {
+    if (!value.startsWith('data:image')) return null;
+    final parts = value.split(',');
+    if (parts.length < 2) return null;
+    try {
+      return base64Decode(parts[1]);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 class _EventCard extends StatelessWidget {
@@ -1074,6 +1228,7 @@ class _EventCard extends StatelessWidget {
   final List<String> additionalTags;
   final String date;
   final String image;
+  final Uint8List? imageBytes;
   final int index;
   final String location;
   final String time;
@@ -1091,6 +1246,7 @@ class _EventCard extends StatelessWidget {
     this.additionalTags = const [],
     required this.date,
     required this.image,
+    this.imageBytes,
     required this.index,
     required this.location,
     required this.time,
@@ -1124,6 +1280,7 @@ class _EventCard extends StatelessWidget {
             time: time,
             location: location,
             image: image,
+            imageBytes: imageBytes,
             price: _parsePrice(price),
           )),
         );
@@ -1147,7 +1304,22 @@ class _EventCard extends StatelessWidget {
             // Image or Colored Header with Date Overlay
             Stack(
               children: [
-                if (image.isNotEmpty)
+                if (imageBytes != null)
+                  Image.memory(
+                    imageBytes!,
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 220,
+                        width: double.infinity,
+                        color: Colors.grey[200],
+                        child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
+                      );
+                    },
+                  )
+                else if (image.isNotEmpty)
                   Image.network(
                     image,
                     height: 220,

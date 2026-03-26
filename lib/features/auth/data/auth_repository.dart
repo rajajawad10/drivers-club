@@ -29,6 +29,7 @@ class AuthRepository {
           email:     result.user.email,
           firstName: result.user.firstName,
           lastName:  result.user.lastName,
+          crmId:     result.user.crmId,
         );
         return result;
       } else {
