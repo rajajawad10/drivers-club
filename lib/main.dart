@@ -15,7 +15,10 @@ void main() async {
 
   // Check if user already has a saved token from previous session
   final token = await SecureStorage.getToken();
-  final isLoggedIn = token != null && token.isNotEmpty;
+  final loggedOut = await SecureStorage.getLoggedOut();
+  final hasLoggedIn = await SecureStorage.getHasLoggedIn();
+  final isLoggedIn =
+      !loggedOut && hasLoggedIn && token != null && token.isNotEmpty;
 
   runApp(
     MultiProvider(

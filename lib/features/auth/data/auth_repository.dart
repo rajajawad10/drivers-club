@@ -23,6 +23,8 @@ class AuthRepository {
         // Save both tokens and user info
         await SecureStorage.saveToken(result.accessToken);
         await SecureStorage.saveRefreshToken(result.refreshToken);
+        await SecureStorage.clearLoggedOut();
+        await SecureStorage.setHasLoggedIn(true);
         await SecureStorage.saveUserInfo(
           userId:    result.user.id,
           name:      result.user.fullName,
@@ -62,6 +64,7 @@ class AuthRepository {
       // Even if API call fails, still clear local data
     } finally {
       await SecureStorage.clearAll();
+      await SecureStorage.setLoggedOut(true);
     }
   }
 

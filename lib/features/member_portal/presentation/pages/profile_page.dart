@@ -247,11 +247,15 @@ class _ProfileContentState extends State<ProfileContent> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MinimalLoginPage()),
-                    (route) => false,
-                  ),
+                  onTap: () async {
+                    await context.read<AuthProvider>().logout();
+                    if (!context.mounted) return;
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MinimalLoginPage()),
+                      (route) => false,
+                    );
+                  },
                   child: const Icon(LucideIcons.logOut,
                       size: 20, color: Colors.black54),
                 ),

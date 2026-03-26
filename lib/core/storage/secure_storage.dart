@@ -12,6 +12,8 @@ class SecureStorage {
   static const _firstNameKey    = 'first_name';
   static const _lastNameKey     = 'last_name';
   static const _crmIdKey        = 'crm_id';
+  static const _loggedOutKey    = 'logged_out';
+  static const _hasLoggedInKey  = 'has_logged_in';
 
   // ── Access Token ───────────────────────────────────────────────────────────
 
@@ -76,5 +78,29 @@ class SecureStorage {
 
   static Future<void> clearAll() async {
     await _storage.deleteAll();
+  }
+
+  // ── Logged-out flag (force login on next launch) ───────────────────────────
+  static Future<void> setLoggedOut(bool value) async {
+    await _storage.write(key: _loggedOutKey, value: value ? '1' : '0');
+  }
+
+  static Future<bool> getLoggedOut() async {
+    final value = await _storage.read(key: _loggedOutKey);
+    return value == '1';
+  }
+
+  static Future<void> clearLoggedOut() async {
+    await _storage.delete(key: _loggedOutKey);
+  }
+
+  // ── First-time login flag ──────────────────────────────────────────────────
+  static Future<void> setHasLoggedIn(bool value) async {
+    await _storage.write(key: _hasLoggedInKey, value: value ? '1' : '0');
+  }
+
+  static Future<bool> getHasLoggedIn() async {
+    final value = await _storage.read(key: _hasLoggedInKey);
+    return value == '1';
   }
 }
