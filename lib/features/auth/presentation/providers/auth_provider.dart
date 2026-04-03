@@ -38,12 +38,14 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> changePassword({
     required String currentPassword,
     required String newPassword,
+    required String confirmPassword,
   }) async {
     _setLoading();
     try {
       await _repo.changePassword(
         currentPassword: currentPassword,
         newPassword:     newPassword,
+        confirmPassword: confirmPassword,
       );
       _setSuccess();
       return true;
@@ -60,6 +62,33 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     } catch (_) {
       // Silently fail — user stays on current data
+    }
+  }
+
+  // ── UPDATE AVATAR ──────────────────────────────────────────────────────────
+  Future<bool> updateAvatar(String avatarBase64) async {
+    _setLoading();
+    try {
+      await _repo.updateAvatar(avatarBase64);
+      _currentUser = await _repo.getProfile();
+      _setSuccess();
+      return true;
+    } catch (e) {
+      _setError(e.toString().replaceFirst('Exception: ', ''));
+      return false;
+    }
+  }
+
+  // ── UPDATE PROFILE ─────────────────────────────────────────────────────────
+  Future<bool> updateProfile(Map<String, dynamic> payload) async {
+    _setLoading();
+    try {
+      _currentUser = await _repo.updateProfile(payload);
+      _setSuccess();
+      return true;
+    } catch (e) {
+      _setError(e.toString().replaceFirst('Exception: ', ''));
+      return false;
     }
   }
 

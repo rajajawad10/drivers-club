@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -27,7 +29,8 @@ class ProfileContent extends StatefulWidget {
   State<ProfileContent> createState() => _ProfileContentState();
 }
 
-class _ProfileContentState extends State<ProfileContent> {
+class _ProfileContentState extends State<ProfileContent>
+    with WidgetsBindingObserver {
   static const _bg      = Color(0xFFF5F5F5);
   static const _divider = Color(0xFFBFBDB7);
 
@@ -40,6 +43,76 @@ class _ProfileContentState extends State<ProfileContent> {
 
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadProfileToForm();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    for (final c in [_firstName,_lastName,_middleName,_birthday,_email,_company,
+      _jobTitle,_phone,_mobile,_address,_apt,_city,_postal,
+      _customerType,_customerCategory,_gender,_vehicleChoice,_vinePref,_customFields,
+      _currentPw,_newPw,_confirmPw]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadProfileToForm();
+    }
+  }
+
+  Future<void> _loadProfileToForm() async {
+    final auth = context.read<AuthProvider>();
+    await auth.loadProfile();
+    final user = auth.currentUser;
+    if (user == null || !mounted) return;
+
+    _firstName.text  = user.firstName;
+    _lastName.text   = user.lastName;
+    _middleName.text = user.middleName ?? '';
+    _birthday.text   = user.birthday ?? '';
+    _email.text      = user.email;
+    _company.text    = user.company ?? '';
+    _jobTitle.text   = user.jobTitle ?? '';
+    _phone.text      = user.phone ?? '';
+    _mobile.text     = user.mobileNumber ?? '';
+    _address.text    = user.address ?? '';
+    _apt.text        = user.aptSuite ?? user.houseNumber ?? '';
+    _city.text       = user.city ?? user.ort ?? '';
+    _postal.text     = user.postalCode ?? '';
+    _customerType.text     = user.customerType ?? '';
+    _customerCategory.text = user.customerCategory ?? '';
+    _gender.text           = user.gender ?? '';
+    _vehicleChoice.text    = user.vehicleChoice ?? '';
+    _vinePref.text         = user.vinePref ?? '';
+    _customFields.text     = user.customFields ?? '';
+
+    final hasAvatar = (user.avatarBase64 ?? '').trim().isNotEmpty ||
+        (user.avatarUrl ?? '').trim().isNotEmpty;
+    if (!hasAvatar) {
+      Provider.of<UserProvider>(context, listen: false).clearProfileImage();
+      _profileImage = null;
+    }
+
+    setState(() {
+      _emailOptIn = user.emailOptIn ?? _emailOptIn;
+      _country = user.country ?? user.land ?? _country;
+      _region  = user.region ?? _region;
+    });
+  }
 
   Future<void> _showImagePickerSheet() async {
     await showModalBottomSheet(
@@ -91,22 +164,68 @@ class _ProfileContentState extends State<ProfileContent> {
 
   Future<void> _handlePick(ImageSource source) async {
     Navigator.pop(context);
-    final pickedFile = await _picker.pickImage(source: source);
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      imageQuality: 70,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
     if (pickedFile == null) return;
     final selectedFile = File(pickedFile.path);
-    Provider.of<UserProvider>(context, listen: false)
-        .updateProfileImage(selectedFile);
-    setState(() {
-      _profileImage = selectedFile;
-    });
+    final bytes = await selectedFile.readAsBytes();
+    final avatarBase64 = base64Encode(bytes);
+    final ext = selectedFile.path.toLowerCase();
+    final mime = ext.endsWith('.png') ? 'image/png' : 'image/jpeg';
+    final dataUri = 'data:$mime;base64,$avatarBase64';
+    var success = await context.read<AuthProvider>().updateAvatar(dataUri);
+    if (!success) {
+      success = await context.read<AuthProvider>().updateAvatar(avatarBase64);
+    }
+    if (!success && mounted) {
+      final message = context.read<AuthProvider>().errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message.isNotEmpty
+            ? message
+            : 'Failed to update profile photo')),
+      );
+      return;
+    }
+    if (mounted) {
+      Provider.of<UserProvider>(context, listen: false)
+          .updateProfileImage(selectedFile);
+      setState(() {
+        _profileImage = selectedFile;
+      });
+    }
   }
 
   void _removeImage() {
     Navigator.pop(context);
-    Provider.of<UserProvider>(context, listen: false).clearProfileImage();
-    setState(() {
-      _profileImage = null;
-    });
+    _removeAvatarOnServer();
+  }
+
+  Future<void> _removeAvatarOnServer() async {
+    final auth = context.read<AuthProvider>();
+    // Try empty string as "remove"
+    var success = await auth.updateAvatar('');
+    if (!success) {
+      // Fallback to explicit null marker if backend expects it
+      success = await auth.updateAvatar('null');
+    }
+    if (!mounted) return;
+
+    if (success) {
+      Provider.of<UserProvider>(context, listen: false).clearProfileImage();
+      setState(() {
+        _profileImage = null;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage.isNotEmpty
+            ? auth.errorMessage
+            : 'Failed to remove profile photo')),
+      );
+    }
   }
 
   static const _navItems = [
@@ -115,11 +234,18 @@ class _ProfileContentState extends State<ProfileContent> {
   static const _tabs = [
     'Account Details', 'Personal Details', 'Advanced Settings',
   ];
+  static const _countryOptions = [
+    'Germany', 'Pakistan', 'USA', 'UK', 'France',
+  ];
+  static const _regionOptions = [
+    'Baden-Württemberg', 'Bavaria', 'Berlin', 'Hamburg',
+  ];
 
   // Account Details form controllers
   final _firstName   = TextEditingController();
   final _lastName    = TextEditingController();
   final _middleName  = TextEditingController();
+  final _birthday    = TextEditingController();
   final _email       = TextEditingController();
   final _company     = TextEditingController();
   final _jobTitle    = TextEditingController();
@@ -129,6 +255,12 @@ class _ProfileContentState extends State<ProfileContent> {
   final _apt         = TextEditingController();
   final _city        = TextEditingController();
   final _postal      = TextEditingController();
+  final _customerType     = TextEditingController();
+  final _customerCategory = TextEditingController();
+  final _gender           = TextEditingController();
+  final _vehicleChoice    = TextEditingController();
+  final _vinePref         = TextEditingController();
+  final _customFields     = TextEditingController();
   String _country    = '';
   String _region     = '';
 
@@ -152,16 +284,6 @@ class _ProfileContentState extends State<ProfileContent> {
   final  _currentPw          = TextEditingController();
   final  _newPw              = TextEditingController();
   final  _confirmPw          = TextEditingController();
-
-  @override
-  void dispose() {
-    for (final c in [_firstName,_lastName,_middleName,_email,_company,
-      _jobTitle,_phone,_mobile,_address,_apt,_city,_postal,
-      _currentPw,_newPw,_confirmPw]) {
-      c.dispose();
-    }
-    super.dispose();
-  }
 
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
@@ -207,18 +329,27 @@ class _ProfileContentState extends State<ProfileContent> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Consumer<UserProvider>(
-                  builder: (context, userProvider, child) {
+                Consumer2<UserProvider, AuthProvider>(
+                  builder: (context, userProvider, authProvider, child) {
+                    final avatarUrl = authProvider.currentUser?.avatarUrl;
+                    final avatarBase64 = authProvider.currentUser?.avatarBase64;
+                    final avatarBytes = _decodeBase64Image(avatarBase64);
+                    final imageProvider = userProvider.profileImage != null
+                        ? FileImage(userProvider.profileImage!)
+                        : (_profileImage != null
+                            ? FileImage(_profileImage!)
+                            : (avatarBytes != null
+                                ? MemoryImage(avatarBytes)
+                                : (avatarUrl != null && avatarUrl.isNotEmpty
+                                    ? NetworkImage(avatarUrl)
+                                    : const AssetImage('')
+                                        as ImageProvider)));
                     return GestureDetector(
                       onTap: _showImagePickerSheet,
                       child: CircleAvatar(
                         radius: 16,
                         backgroundColor: Colors.grey[300],
-                        backgroundImage: userProvider.profileImage != null
-                            ? FileImage(userProvider.profileImage!)
-                            : (_profileImage != null
-                            ? FileImage(_profileImage!)
-                            : const AssetImage('assets/images/user_profile.png') as ImageProvider),
+                        backgroundImage: imageProvider,
                       ),
                     );
                   },
@@ -228,20 +359,32 @@ class _ProfileContentState extends State<ProfileContent> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Ammar Raja',
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'ammar.raja1@gmail.com',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.black54,
-                        ),
+                      Consumer<AuthProvider>(
+                        builder: (context, authProvider, child) {
+                          final user = authProvider.currentUser;
+                          final name = (user?.fullName ?? '').trim();
+                          final email = (user?.email ?? '').trim();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name.isNotEmpty ? name : 'Member',
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                email.isNotEmpty ? email : 'email@domain.com',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -944,8 +1087,19 @@ class _ProfileContentState extends State<ProfileContent> {
         // Middle / Email
         _row2(
           _fieldCol('Middle Name', _middleName),
-          _fieldCol('Email Address', _email),
+          _fieldCol('Email Address', _email, enabled: false),
         ),
+        const SizedBox(height: 12),
+
+        // Birthday / Customer Type
+        _row2(
+          _fieldCol('Birthday', _birthday),
+          _fieldCol('Customer Type', _customerType, enabled: false),
+        ),
+        const SizedBox(height: 12),
+
+        // Customer Category
+        _fieldCol('Customer Category', _customerCategory, enabled: false),
         const SizedBox(height: 12),
 
         // Company / Job Title
@@ -957,8 +1111,8 @@ class _ProfileContentState extends State<ProfileContent> {
 
         // Phone / Mobile
         _row2(
-          _phoneCol('Phone Number'),
-          _phoneCol('Mobile Number'),
+          _phoneCol('Phone Number', _phone),
+          _phoneCol('Mobile Number', _mobile),
         ),
 
         const SizedBox(height: 28),
@@ -972,7 +1126,7 @@ class _ProfileContentState extends State<ProfileContent> {
         _labelText('Country'),
         _dropdownField(
           value: _country.isEmpty ? null : _country,
-          items: const ['Germany', 'Pakistan', 'USA', 'UK', 'France'],
+          items: _countryOptions,
           onChanged: (v) => setState(() => _country = v ?? _country),
           hint: 'Select country',
         ),
@@ -994,7 +1148,7 @@ class _ProfileContentState extends State<ProfileContent> {
               _labelText('Region'),
               _dropdownField(
                 value: _region.isEmpty ? null : _region,
-                items: const ['Baden-Württemberg','Bavaria','Berlin','Hamburg'],
+                items: _regionOptions,
                 onChanged: (v) => setState(() => _region = v ?? ''),
                 hint: '',
               ),
@@ -1113,6 +1267,19 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
         ),
 
+        const SizedBox(height: 24),
+        _sectionTitle('Profile Details'),
+        const SizedBox(height: 12),
+        _row2(
+          _fieldCol('Gender', _gender, enabled: false),
+          _fieldCol('Vehicle Choice', _vehicleChoice, enabled: false),
+        ),
+        const SizedBox(height: 12),
+        _row2(
+          _fieldCol('Vine Preference', _vinePref, enabled: false),
+          _fieldCol('Custom Fields', _customFields, enabled: false),
+        ),
+
         const SizedBox(height: 28),
         _saveBtn(),
         const SizedBox(height: 16),
@@ -1196,20 +1363,54 @@ class _ProfileContentState extends State<ProfileContent> {
     ),
   );
 
+  Uint8List? _decodeBase64Image(String? value) {
+    if (value == null || value.isEmpty) return null;
+    try {
+      final cleaned = value.startsWith('data:image')
+          ? value.split(',').last
+          : value;
+      return base64Decode(cleaned);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic> _buildProfilePayload() {
+    return {
+      'firstName': _firstName.text.trim(),
+      'lastName': _lastName.text.trim(),
+      'middleName': _middleName.text.trim(),
+      'birthday': _birthday.text.trim(),
+      'company': _company.text.trim(),
+      'jobTitle': _jobTitle.text.trim(),
+      'phone': _phone.text.trim(),
+      'mobileNumber': _mobile.text.trim(),
+      'country': _country.trim(),
+      'address': _address.text.trim(),
+      'aptSuite': _apt.text.trim(),
+      'city': _city.text.trim(),
+      'region': _region.trim(),
+      'postalCode': _postal.text.trim(),
+      'emailOptIn': _emailOptIn,
+    };
+  }
+
   // Plain white text field
   Widget _fieldCol(String label, TextEditingController ctrl,
-      {int flex = 1}) {
+      {int flex = 1, bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _labelText(label),
         TextField(
           controller: ctrl,
+          enabled: enabled,
           style: GoogleFonts.inter(
-              fontSize: 13, color: Colors.black87),
+              fontSize: 13,
+              color: enabled ? Colors.black87 : Colors.black54),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: enabled ? Colors.white : Colors.grey.shade100,
             contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
@@ -1234,13 +1435,14 @@ class _ProfileContentState extends State<ProfileContent> {
   }
 
   // Phone field with "DE ▼" prefix
-  Widget _phoneCol(String label) {
+  Widget _phoneCol(String label, TextEditingController ctrl,
+      {bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _labelText(label),
         Container(
-          color: Colors.white,
+          color: enabled ? Colors.white : Colors.grey.shade100,
           child: Row(
             children: [
               // Country code button
@@ -1268,12 +1470,15 @@ class _ProfileContentState extends State<ProfileContent> {
               ),
               Expanded(
                 child: TextField(
+                  controller: ctrl,
+                  enabled: enabled,
                   style: GoogleFonts.inter(
-                      fontSize: 13, color: Colors.black87),
+                      fontSize: 13,
+                      color: enabled ? Colors.black87 : Colors.black54),
                   decoration: InputDecoration(
                     hintText: '+49',
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: enabled ? Colors.white : Colors.grey.shade100,
                     contentPadding:
                     const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 14),
@@ -1351,6 +1556,11 @@ class _ProfileContentState extends State<ProfileContent> {
     required ValueChanged<String?> onChanged,
     String? hint,
   }) {
+    final menuItems = (value != null &&
+            value.isNotEmpty &&
+            !items.contains(value))
+        ? [value, ...items]
+        : items;
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: 14, vertical: 4),
@@ -1374,7 +1584,7 @@ class _ProfileContentState extends State<ProfileContent> {
               fontSize: 13,
               color: Colors.black87,
               fontWeight: FontWeight.w500),
-          items: items
+          items: menuItems
               .map((e) => DropdownMenuItem(
             value: e,
             child: Text(e),
@@ -1438,9 +1648,11 @@ class _ProfileContentState extends State<ProfileContent> {
     height: 48,
     child: ElevatedButton(
       onPressed: () async {
-        // Only run change password if fields are filled
-        if (_currentPw.text.isNotEmpty && _newPw.text.isNotEmpty) {
-          // Check new password and confirmation match
+        final auth = context.read<AuthProvider>();
+
+        final hasPw =
+            _currentPw.text.isNotEmpty || _newPw.text.isNotEmpty || _confirmPw.text.isNotEmpty;
+        if (hasPw) {
           if (_newPw.text != _confirmPw.text) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1456,17 +1668,15 @@ class _ProfileContentState extends State<ProfileContent> {
             return;
           }
 
-          // Call change password API
-          final auth = context.read<AuthProvider>();
-          final success = await auth.changePassword(
+          final pwSuccess = await auth.changePassword(
             currentPassword: _currentPw.text.trim(),
             newPassword:     _newPw.text.trim(),
+            confirmPassword: _confirmPw.text.trim(),
           );
 
           if (!mounted) return;
 
-          if (success) {
-            // Clear password fields after success
+          if (pwSuccess) {
             _currentPw.clear();
             _newPw.clear();
             _confirmPw.clear();
@@ -1493,14 +1703,31 @@ class _ProfileContentState extends State<ProfileContent> {
                     borderRadius: BorderRadius.circular(4)),
               ),
             );
+            return;
           }
-        } else {
-          // No password fields filled — normal save
+        }
+
+        final profileSuccess = await auth.updateProfile(_buildProfilePayload());
+        if (!mounted) return;
+
+        if (profileSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Changes saved!',
+              content: Text('Profile updated successfully!',
                   style: GoogleFonts.inter(color: Colors.white)),
               backgroundColor: Colors.black,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4)),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(auth.errorMessage,
+                  style: GoogleFonts.inter(color: Colors.white)),
+              backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(

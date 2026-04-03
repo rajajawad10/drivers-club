@@ -121,10 +121,70 @@ class AuthRepository {
     }
   }
 
+  // ── UPDATE PROFILE AVATAR ──────────────────────────────────────────────────
+  Future<void> updateAvatar(String avatarBase64) async {
+    final token = await SecureStorage.getToken();
+    if (token == null) throw Exception('Not authenticated.');
+
+    final response = await http.patch(
+      Uri.parse(ApiConstants.baseUrl + ApiConstants.updateAvatar),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'avatarBase64': avatarBase64}),
+    ).timeout(ApiConstants.timeout);
+
+    Map<String, dynamic>? data;
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      data = null;
+    }
+
+    final successFlag = data?['success'] as bool?;
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300 ||
+        successFlag == false) {
+      final message = data?['message']?.toString()
+          ?? data?['error']?.toString()
+          ?? 'Failed to update avatar. (${response.statusCode})';
+      throw Exception(message);
+    }
+  }
+
+  // ── UPDATE PROFILE ─────────────────────────────────────────────────────────
+  Future<UserModel> updateProfile(Map<String, dynamic> payload) async {
+    final token = await SecureStorage.getToken();
+    if (token == null) throw Exception('Not authenticated.');
+
+    final response = await http.patch(
+      Uri.parse(ApiConstants.baseUrl + ApiConstants.updateProfile),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(payload),
+    ).timeout(ApiConstants.timeout);
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode == 200) {
+      return UserModel.fromJson(
+        data['data'] as Map<String, dynamic>? ?? {},
+      );
+    }
+
+    final message = data['message']?.toString()
+        ?? data['error']?.toString()
+        ?? 'Failed to update profile.';
+    throw Exception(message);
+  }
+
   // ── CHANGE PASSWORD ────────────────────────────────────────────────────────
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
+    required String confirmPassword,
   }) async {
     final token = await SecureStorage.getToken();
     if (token == null) throw Exception('Not authenticated.');
@@ -138,6 +198,7 @@ class AuthRepository {
       body: jsonEncode({
         'currentPassword': currentPassword,
         'newPassword':     newPassword,
+        'confirmPassword': confirmPassword,
       }),
     ).timeout(ApiConstants.timeout);
 

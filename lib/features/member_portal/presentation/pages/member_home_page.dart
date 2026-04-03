@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:pitstop/core/responsive.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/blog_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/explore_events_page.dart';
@@ -16,6 +18,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
+import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
 
 class MemberHomePage extends StatefulWidget {
   const MemberHomePage({super.key});
@@ -102,22 +105,42 @@ class _MobileLayout extends StatelessWidget {
       // REPLACE YOUR ENTIRE constPadding BLOCK WITH THIS:
       Padding(
         padding: const EdgeInsets.only(right: 16.0), // The 'const' goes here
-        child: Consumer<UserProvider>(
-          // The Consumer rebuilds this part whenever notifyListeners() is called in UserProvider
-          builder: (context, userProvider, child) {
+        child: Consumer2<UserProvider, AuthProvider>(
+          // Rebuild when local image or profile changes
+          builder: (context, userProvider, authProvider, child) {
+            final avatarBase64 = authProvider.currentUser?.avatarBase64;
+            final avatarUrl = authProvider.currentUser?.avatarUrl;
+            final avatarBytes = _decodeBase64Image(avatarBase64);
+            final imageProvider = userProvider.profileImage != null
+                ? FileImage(userProvider.profileImage!)
+                : (avatarBytes != null
+                    ? MemoryImage(avatarBytes)
+                    : (avatarUrl != null && avatarUrl.isNotEmpty
+                        ? NetworkImage(avatarUrl)
+                        : const AssetImage('')
+                            as ImageProvider));
             return CircleAvatar(
               radius: 16,
               backgroundColor: Colors.grey[200],
-              // Check if provider has a picked image, otherwise show default asset
-              backgroundImage: userProvider.profileImage != null
-                  ? FileImage(userProvider.profileImage!) // Display user-selected file
-                  : const AssetImage('assets/images/user_profile.png') as ImageProvider, // Default profile pic
+              backgroundImage: imageProvider,
             );
           },
         ),
       ),
     ],
   );
+
+  Uint8List? _decodeBase64Image(String? value) {
+    if (value == null || value.isEmpty) return null;
+    try {
+      final cleaned = value.startsWith('data:image')
+          ? value.split(',').last
+          : value;
+      return base64Decode(cleaned);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Widget _buildBottomNav() => Container(
     decoration: BoxDecoration(

@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'https://api.pitstop.ahdus.de/api/v1';
+  static const String baseUrl = 'https://authorization-effect-records-important.trycloudflare.com/api/v1';
 
   // Auth endpoints
   static const String signIn         = '/auth/sign-in';
@@ -7,6 +7,8 @@ class ApiConstants {
   static const String signOut        = '/auth/sign-out';
   static const String refreshToken   = '/auth/refresh';
   static const String getProfile     = '/auth/profile';
+  static const String updateProfile  = '/auth/profile';
+  static const String updateAvatar   = '/auth/profile/avatar';
   static const String changePassword = '/auth/change-password';
 
   // Events endpoints — crmId is dynamic, passed at runtime
