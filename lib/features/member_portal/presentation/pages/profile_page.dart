@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'notifications_page.dart';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
 import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,10 +24,169 @@ import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart'
 //  · Right content: 3 tabs — Account Details | Personal Details | Advanced Settings
 // ─────────────────────────────────────────────────────────────────────────────
 class ProfileContent extends StatefulWidget {
-  const ProfileContent({super.key});
+  final int initialNavIndex;
+
+  const ProfileContent({super.key, this.initialNavIndex = 1});
 
   @override
   State<ProfileContent> createState() => _ProfileContentState();
+}
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: const SafeArea(
+        child: ProfileContent(),
+      ),
+    );
+  }
+}
+
+class MySchedulePage extends StatefulWidget {
+  const MySchedulePage({super.key});
+
+  @override
+  State<MySchedulePage> createState() => _MySchedulePageState();
+}
+
+class _MySchedulePageState extends State<MySchedulePage> {
+  int _scheduleTab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Container(
+          color: _ProfileContentState._bg,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(LucideIcons.arrowLeft,
+                          size: 18, color: Colors.black),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'MY SCHEDULE',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const Spacer(),
+                    _OutlinedIcon(
+                      icon: LucideIcons.bell,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const NotificationsPage()),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _OutlinedIcon(
+                      icon: LucideIcons.calendar,
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+              _MyScheduleTabs(
+                activeIndex: _scheduleTab,
+                onTap: (i) => setState(() => _scheduleTab = i),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _scheduleTab == 0
+                            ? 'You have no upcoming items in your schedule.'
+                            : 'No past items found.',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.black54,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MyScheduleTabs extends StatelessWidget {
+  final int activeIndex;
+  final ValueChanged<int> onTap;
+
+  const _MyScheduleTabs({
+    required this.activeIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const tabs = ['Upcoming', 'Past'];
+    return Container(
+      color: _ProfileContentState._bg,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: tabs.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 24),
+              itemBuilder: (_, i) {
+                final active = i == activeIndex;
+                return GestureDetector(
+                  onTap: () => onTap(i),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        tabs[i],
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                          color: active ? Colors.black : Colors.black45,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 2,
+                        width: active ? 32 : 0,
+                        color: Colors.black,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          Divider(height: 1, color: _ProfileContentState._divider),
+        ],
+      ),
+    );
+  }
 }
 
 class _ProfileContentState extends State<ProfileContent>
@@ -41,12 +201,13 @@ class _ProfileContentState extends State<ProfileContent>
   int _walletTab      = 0;  // 0=Payment Methods, 1=Tickets, 2=Vouchers
   int _billingTab     = 0;  // 0=Statements, 1=Dues, 2=Orders, 3=House Account
 
-  File? _profileImage;
+  Uint8List? _profileImageBytes;
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
+    _navIndex = widget.initialNavIndex;
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -104,7 +265,7 @@ class _ProfileContentState extends State<ProfileContent>
         (user.avatarUrl ?? '').trim().isNotEmpty;
     if (!hasAvatar) {
       Provider.of<UserProvider>(context, listen: false).clearProfileImage();
-      _profileImage = null;
+      _profileImageBytes = null;
     }
 
     setState(() {
@@ -136,18 +297,19 @@ class _ProfileContentState extends State<ProfileContent>
                 ),
               ),
               const SizedBox(height: 16),
-              _sheetTile(
-                icon: LucideIcons.camera,
-                label: 'Take Photo',
-                onTap: () => _handlePick(ImageSource.camera),
-              ),
+              if (!kIsWeb)
+                _sheetTile(
+                  icon: LucideIcons.camera,
+                  label: 'Take Photo',
+                  onTap: () => _handlePick(ImageSource.camera),
+                ),
               _sheetTile(
                 icon: LucideIcons.image,
                 label: 'Choose from Gallery',
                 onTap: () => _handlePick(ImageSource.gallery),
               ),
-              if (_profileImage != null ||
-                  Provider.of<UserProvider>(context, listen: false).profileImage != null)
+              if (_profileImageBytes != null ||
+                  Provider.of<UserProvider>(context, listen: false).profileImageBytes != null)
                 _sheetTile(
                   icon: LucideIcons.trash2,
                   label: 'Remove Photo',
@@ -171,10 +333,9 @@ class _ProfileContentState extends State<ProfileContent>
       maxHeight: 800,
     );
     if (pickedFile == null) return;
-    final selectedFile = File(pickedFile.path);
-    final bytes = await selectedFile.readAsBytes();
+    final bytes = await pickedFile.readAsBytes();
     final avatarBase64 = base64Encode(bytes);
-    final ext = selectedFile.path.toLowerCase();
+    final ext = pickedFile.path.toLowerCase();
     final mime = ext.endsWith('.png') ? 'image/png' : 'image/jpeg';
     final dataUri = 'data:$mime;base64,$avatarBase64';
     var success = await context.read<AuthProvider>().updateAvatar(dataUri);
@@ -192,10 +353,8 @@ class _ProfileContentState extends State<ProfileContent>
     }
     if (mounted) {
       Provider.of<UserProvider>(context, listen: false)
-          .updateProfileImage(selectedFile);
-      setState(() {
-        _profileImage = selectedFile;
-      });
+          .updateProfileImageBytes(bytes);
+      setState(() => _profileImageBytes = bytes);
     }
   }
 
@@ -217,7 +376,7 @@ class _ProfileContentState extends State<ProfileContent>
     if (success) {
       Provider.of<UserProvider>(context, listen: false).clearProfileImage();
       setState(() {
-        _profileImage = null;
+        _profileImageBytes = null;
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -319,7 +478,13 @@ class _ProfileContentState extends State<ProfileContent>
                           builder: (_) => const NotificationsPage())),
                 ),
                 const SizedBox(width: 8),
-                _OutlinedIcon(icon: LucideIcons.calendar, onTap: () {}),
+                _OutlinedIcon(
+                  icon: LucideIcons.calendar,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                  ),
+                ),
               ],
             ),
           ),
@@ -334,22 +499,24 @@ class _ProfileContentState extends State<ProfileContent>
                     final avatarUrl = authProvider.currentUser?.avatarUrl;
                     final avatarBase64 = authProvider.currentUser?.avatarBase64;
                     final avatarBytes = _decodeBase64Image(avatarBase64);
-                    final imageProvider = userProvider.profileImage != null
-                        ? FileImage(userProvider.profileImage!)
-                        : (_profileImage != null
-                            ? FileImage(_profileImage!)
+                    final imageProvider = userProvider.profileImageBytes != null
+                        ? MemoryImage(userProvider.profileImageBytes!)
+                        : (_profileImageBytes != null
+                            ? MemoryImage(_profileImageBytes!)
                             : (avatarBytes != null
                                 ? MemoryImage(avatarBytes)
                                 : (avatarUrl != null && avatarUrl.isNotEmpty
                                     ? NetworkImage(avatarUrl)
-                                    : const AssetImage('')
+                                    : const AssetImage('assets/images/user_profile.png')
                                         as ImageProvider)));
-                    return GestureDetector(
-                      onTap: _showImagePickerSheet,
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage: imageProvider,
+                    return HoverCursor(
+                      child: GestureDetector(
+                        onTap: _showImagePickerSheet,
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.grey[300],
+                          backgroundImage: imageProvider,
+                        ),
                       ),
                     );
                   },
@@ -389,18 +556,20 @@ class _ProfileContentState extends State<ProfileContent>
                     ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: () async {
-                    await context.read<AuthProvider>().logout();
-                    if (!context.mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MinimalLoginPage()),
-                      (route) => false,
-                    );
-                  },
-                  child: const Icon(LucideIcons.logOut,
-                      size: 20, color: Colors.black54),
+                HoverCursor(
+                  child: GestureDetector(
+                    onTap: () async {
+                      await context.read<AuthProvider>().logout();
+                      if (!context.mounted) return;
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MinimalLoginPage()),
+                        (route) => false,
+                      );
+                    },
+                    child: const Icon(LucideIcons.logOut,
+                        size: 20, color: Colors.black54),
+                  ),
                 ),
               ],
             ),
@@ -1769,19 +1938,23 @@ class _ProfileContentState extends State<ProfileContent>
               size: 12, color: Colors.black87),
         ),
       ),
-      GestureDetector(
-        onTap: ExternalLinks.openInstagram,
-        child: const Icon(LucideIcons.instagram,
-            size: 18, color: Colors.black54),
+      HoverCursor(
+        child: GestureDetector(
+          onTap: ExternalLinks.openInstagram,
+          child: const Icon(LucideIcons.instagram,
+              size: 18, color: Colors.black54),
+        ),
       ),
       Row(
         children: ['FAQ','Terms','Privacy'].map((l) => Padding(
           padding: const EdgeInsets.only(left: 16),
-          child: GestureDetector(
-            onTap: () => _showComingSoon(context),
-            child: Text(l,
-                style: GoogleFonts.inter(
-                    fontSize: 12, color: Colors.black54)),
+          child: HoverCursor(
+            child: GestureDetector(
+              onTap: () => _showComingSoon(context),
+              child: Text(l,
+                  style: GoogleFonts.inter(
+                      fontSize: 12, color: Colors.black54)),
+            ),
           ),
         )).toList(),
       ),
@@ -1794,16 +1967,18 @@ class _ProfileContentState extends State<ProfileContent>
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.black87),
-      title: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          color: isDestructive ? Colors.red : Colors.black87,
+    return HoverCursor(
+      child: ListTile(
+        leading: Icon(icon, color: isDestructive ? Colors.red : Colors.black87),
+        title: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            color: isDestructive ? Colors.red : Colors.black87,
+          ),
         ),
+        onTap: onTap,
       ),
-      onTap: onTap,
     );
   }
 
@@ -1832,15 +2007,17 @@ class _OutlinedIcon extends StatelessWidget {
   const _OutlinedIcon({required this.icon, required this.onTap});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 40, height: 40,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black26, width: 1),
-        borderRadius: BorderRadius.circular(4),
+  Widget build(BuildContext context) => HoverCursor(
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black26, width: 1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Icon(icon, size: 18, color: Colors.black87),
       ),
-      child: Icon(icon, size: 18, color: Colors.black87),
     ),
   );
 }

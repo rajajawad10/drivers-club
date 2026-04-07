@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Corporate Workspace Booking Page
@@ -278,9 +279,11 @@ class _BoardRoomBookingPageState extends State<BoardRoomBookingPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
+        leading: HoverCursor(
+          child: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft, color: Colors.black, size: 20),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         title: Text(
           'BOOK ${_roomTitle.toUpperCase()}',
@@ -535,53 +538,57 @@ class _TapCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Icon(icon, size: 13, color: const Color(0xFFC0A062)),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  caption,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+    return HoverCursor(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              )
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 13, color: const Color(0xFFC0A062)),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      caption,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1E1E2C),
                 ),
               ),
-            ]),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E2C),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -707,22 +714,24 @@ class _CircleBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = onPressed != null;
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: active ? const Color(0xFFF5F4F0) : Colors.grey[100],
-          border: Border.all(
-            color: active ? Colors.grey.shade300 : Colors.grey.shade200,
+    return HoverCursor(
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: active ? const Color(0xFFF5F4F0) : Colors.grey[100],
+            border: Border.all(
+              color: active ? Colors.grey.shade300 : Colors.grey.shade200,
+            ),
           ),
-        ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: active ? const Color(0xFF1E1E2C) : Colors.grey[300],
+          child: Icon(
+            icon,
+            size: 18,
+            color: active ? const Color(0xFF1E1E2C) : Colors.grey[300],
+          ),
         ),
       ),
     );

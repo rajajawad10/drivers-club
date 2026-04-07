@@ -1,9 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'booking_form_page.dart';
 import 'notifications_page.dart';
 import 'package:pitstop/core/utils/external_links.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/core/web_routes.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Club House Page  –  Matches the reference design exactly:
@@ -92,51 +96,55 @@ class ClubHousePage extends StatelessWidget {
     final size   = MediaQuery.of(context).size;
     final isWide = size.width > 600;
     final cols   = isWide ? 3 : 1;
-
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // ── Header ───────────────────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 16, 24),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Back button
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(LucideIcons.arrowLeft,
-                          size: 20, color: Colors.black87),
-                    ),
-                    const SizedBox(width: 16),
-                    // Title
-                    Expanded(
-                      child: Text(
-                        'CLUB HOUSE',
-                        style: GoogleFonts.inter(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                          color: Colors.black,
+    final content = SafeArea(
+      child: CustomScrollView(
+        slivers: [
+            if (!kIsWeb)
+              // ── Header ───────────────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 16, 24),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Back button
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(LucideIcons.arrowLeft,
+                            size: 20, color: Colors.black87),
+                      ),
+                      const SizedBox(width: 16),
+                      // Title
+                      Expanded(
+                        child: Text(
+                          'CLUB HOUSE',
+                          style: GoogleFonts.inter(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                    // Action icons
-                    _HeaderIcon(
-                      icon: LucideIcons.bell,
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(
-                              builder: (_) => const NotificationsPage())),
-                    ),
-                    const SizedBox(width: 8),
-                    _HeaderIcon(icon: LucideIcons.calendar, onTap: () {}),
-                  ],
+                      // Action icons
+                      _HeaderIcon(
+                        icon: LucideIcons.bell,
+                        onTap: () => Navigator.push(context,
+                            MaterialPageRoute(
+                                builder: (_) => const NotificationsPage())),
+                      ),
+                      const SizedBox(width: 8),
+                      _HeaderIcon(
+                        icon: LucideIcons.calendar,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
             // ── Grid ─────────────────────────────────────────────────────────
             SliverPadding(
@@ -188,9 +196,56 @@ class ClubHousePage extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      );
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Club House',
+        selected: WebNavItem.clubHouse,
+        onNavSelected: (item) => _handleWebNav(context, item),
+        onBellTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        ),
+        onCalendarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+        ),
+        child: content,
+        showFooter: false,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: _bg,
+      body: content,
     );
   }
+
+  void _handleWebNav(BuildContext context, WebNavItem item) {
+    late String route;
+    switch (item) {
+      case WebNavItem.newsfeed:
+        route = WebRoutes.newsfeed;
+        break;
+      case WebNavItem.events:
+        route = WebRoutes.events;
+        break;
+      case WebNavItem.dining:
+        route = WebRoutes.dining;
+        break;
+      case WebNavItem.bookRoom:
+        route = WebRoutes.bookRoom;
+        break;
+      case WebNavItem.clubHouse:
+        route = WebRoutes.clubHouse;
+        break;
+      case WebNavItem.clubBenefits:
+        route = WebRoutes.clubBenefits;
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
+  }
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -458,10 +513,12 @@ class ClubDetailPage extends StatelessWidget {
                       ),
                     ),
                     // Socials
-                    GestureDetector(
-                      onTap: ExternalLinks.openInstagram,
-                      child: const Icon(LucideIcons.instagram,
-                          size: 22, color: Colors.black54),
+                    HoverCursor(
+                      child: GestureDetector(
+                        onTap: ExternalLinks.openInstagram,
+                        child: const Icon(LucideIcons.instagram,
+                            size: 22, color: Colors.black54),
+                      ),
                     ),
                     // Links
                     Row(

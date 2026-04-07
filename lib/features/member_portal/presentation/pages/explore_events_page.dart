@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +13,10 @@ import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/member_home_page.dart';
 import 'package:pitstop/features/member_portal/presentation/providers/events_provider.dart';
 import 'package:pitstop/features/member_portal/domain/models/event_model.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/core/web_routes.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/notifications_page.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 class ExploreEventsPage extends StatefulWidget {
   const ExploreEventsPage({super.key});
@@ -412,7 +417,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
         : allEvents;
     final availableCategories = _buildCategories(effectiveEvents);
     _syncSelectedCategory(availableCategories);
-    return WillPopScope(
+    final content = WillPopScope(
       onWillPop: () async {
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
@@ -426,24 +431,31 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
         return false;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5), // Light professional grey
+        backgroundColor: kIsWeb ? Colors.transparent : const Color(0xFFF5F5F5),
         appBar: AppBar(
-          title: Text(
-            "EVENTS",
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w900,
-              color: Colors.black,
-              letterSpacing: 1.0,
-            ),
-          ),
-          backgroundColor: Colors.white,
+          title: kIsWeb
+              ? const SizedBox.shrink()
+              : Text(
+                  "EVENTS",
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+          toolbarHeight: kIsWeb ? 0 : kToolbarHeight,
+          backgroundColor: kIsWeb ? Colors.transparent : Colors.white,
           elevation: 0,
           centerTitle: true,
+          automaticallyImplyLeading: !kIsWeb,
           iconTheme: const IconThemeData(color: Colors.black),
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
+            preferredSize: Size.fromHeight(kIsWeb ? 68 : 60),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: kIsWeb ? 4 : 8,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -506,7 +518,9 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: kIsWeb
+            ? null
+            : FloatingActionButton(
           backgroundColor: const Color(0xFF1E1E2C),
           onPressed: () {
             Navigator.push(
@@ -627,15 +641,17 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
                   ),
 
                   // Social Icon (Instagram)
-                  GestureDetector(
-                    onTap: ExternalLinks.openInstagram,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        shape: BoxShape.circle,
+                  HoverCursor(
+                    child: GestureDetector(
+                      onTap: ExternalLinks.openInstagram,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(LucideIcons.instagram, size: 16, color: Colors.grey),
                       ),
-                      child: const Icon(LucideIcons.instagram, size: 16, color: Colors.grey),
                     ),
                   ),
 
@@ -658,6 +674,51 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
 
       ),
     );
+
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Events',
+        selected: WebNavItem.events,
+        onNavSelected: (item) => _handleWebNav(context, item),
+        onBellTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        ),
+        onCalendarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+        ),
+        child: content,
+        showFooter: false,
+      );
+    }
+
+    return content;
+  }
+
+  void _handleWebNav(BuildContext context, WebNavItem item) {
+    late String route;
+    switch (item) {
+      case WebNavItem.newsfeed:
+        route = WebRoutes.newsfeed;
+        break;
+      case WebNavItem.events:
+        route = WebRoutes.events;
+        break;
+      case WebNavItem.dining:
+        route = WebRoutes.dining;
+        break;
+      case WebNavItem.bookRoom:
+        route = WebRoutes.bookRoom;
+        break;
+      case WebNavItem.clubHouse:
+        route = WebRoutes.clubHouse;
+        break;
+      case WebNavItem.clubBenefits:
+        route = WebRoutes.clubBenefits;
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
   }
 
   // Use default back behavior from the navigation stack.

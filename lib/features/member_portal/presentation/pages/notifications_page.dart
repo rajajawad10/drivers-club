@@ -7,6 +7,8 @@ import 'package:pitstop/features/member_portal/presentation/pages/house_account_
 import 'package:pitstop/core/providers/order_history_provider.dart';
 import 'package:pitstop/core/models/order_record.dart';
 import 'package:pitstop/core/utils/external_links.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Notifications Page
@@ -58,7 +60,10 @@ class NotificationsPage extends StatelessWidget {
                   _IconBtn(
                     icon: LucideIcons.calendar,
                     active: false,
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                    ),
                   ),
                 ],
               ),
@@ -318,18 +323,22 @@ class NotificationsPage extends StatelessWidget {
               child: Icon(LucideIcons.crown, size: 12, color: Colors.black87),
             ),
           ),
-          GestureDetector(
-            onTap: ExternalLinks.openInstagram,
-            child: const Icon(LucideIcons.instagram, size: 18, color: Colors.black54),
+          HoverCursor(
+            child: GestureDetector(
+              onTap: ExternalLinks.openInstagram,
+              child: const Icon(LucideIcons.instagram, size: 18, color: Colors.black54),
+            ),
           ),
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) => Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: GestureDetector(
-                onTap: () => _showComingSoon(context),
-                child: Text(
-                  l,
-                  style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+              child: HoverCursor(
+                child: GestureDetector(
+                  onTap: () => _showComingSoon(context),
+                  child: Text(
+                    l,
+                    style: GoogleFonts.inter(fontSize: 12, color: Colors.black54),
+                  ),
                 ),
               ),
             )).toList(),
@@ -363,19 +372,21 @@ class _IconBtn extends StatelessWidget {
   const _IconBtn({required this.icon, required this.active, required this.onTap});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            color: active ? Colors.black : Colors.transparent,
-            border: Border.all(color: Colors.black38, width: 1),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: active ? Colors.white : Colors.black87,
+  Widget build(BuildContext context) => HoverCursor(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: active ? Colors.black : Colors.transparent,
+              border: Border.all(color: Colors.black38, width: 1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: active ? Colors.white : Colors.black87,
+            ),
           ),
         ),
       );

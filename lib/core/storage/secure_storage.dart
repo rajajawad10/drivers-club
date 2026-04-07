@@ -2,7 +2,12 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Saves and reads auth tokens and user info securely on the device.
 class SecureStorage {
-  static const _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage(
+    webOptions: WebOptions(
+      dbName: 'pitstop_secure_storage',
+      publicKey: 'pitstop_web',
+    ),
+  );
 
   static const _tokenKey        = 'auth_token';
   static const _refreshTokenKey = 'refresh_token';

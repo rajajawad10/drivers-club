@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Booking Form Page
@@ -248,32 +249,34 @@ class _BookingFormPageState extends State<BookingFormPage> {
                   const SizedBox(height: 18),
 
                   // ── Date picker ────────────────────────────────────────
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 14),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade200),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              _formatDate(_selectedDate),
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: _navy,
+                  HoverCursor(
+                    child: GestureDetector(
+                      onTap: _pickDate,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 14),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade200),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                _formatDate(_selectedDate),
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: _navy,
+                                ),
                               ),
                             ),
-                          ),
-                          const Icon(LucideIcons.calendarDays,
-                              size: 18, color: Colors.black54),
-                        ],
+                            const Icon(LucideIcons.calendarDays,
+                                size: 18, color: Colors.black54),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -505,9 +508,11 @@ class _SpinBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Icon(icon, size: 20, color: Colors.black54),
+    return HoverCursor(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Icon(icon, size: 20, color: Colors.black54),
+      ),
     );
   }
 }

@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pitstop/core/utils/external_links.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/notifications_page.dart';
+import 'package:pitstop/core/web_routes.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Club Benefits Page
@@ -15,6 +20,57 @@ import 'package:pitstop/core/utils/external_links.dart';
 //  · Committees tab: coloured circle + Lucide icon (no photo)
 //  · Footer: logo · Instagram · FAQ Terms Privacy
 // ─────────────────────────────────────────────────────────────────────────────
+class ClubBenefitsScreen extends StatelessWidget {
+  const ClubBenefitsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Club Benefits',
+        selected: WebNavItem.clubBenefits,
+        onNavSelected: (item) => _handleWebNav(context, item),
+        onBellTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        ),
+        onCalendarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+        ),
+        child: const ClubBenefitsContent(),
+        showFooter: false,
+      );
+    }
+    return const ClubBenefitsContent();
+  }
+
+  void _handleWebNav(BuildContext context, WebNavItem item) {
+    late String route;
+    switch (item) {
+      case WebNavItem.newsfeed:
+        route = WebRoutes.newsfeed;
+        break;
+      case WebNavItem.events:
+        route = WebRoutes.events;
+        break;
+      case WebNavItem.dining:
+        route = WebRoutes.dining;
+        break;
+      case WebNavItem.bookRoom:
+        route = WebRoutes.bookRoom;
+        break;
+      case WebNavItem.clubHouse:
+        route = WebRoutes.clubHouse;
+        break;
+      case WebNavItem.clubBenefits:
+        route = WebRoutes.clubBenefits;
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
+  }
+}
+
 class ClubBenefitsContent extends StatefulWidget {
   const ClubBenefitsContent({super.key});
 
@@ -213,29 +269,36 @@ class _ClubBenefitsContentState extends State<ClubBenefitsContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ─────────────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    'CLUB BENEFITS',
-                    style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                      letterSpacing: 0.5,
+          if (!kIsWeb)
+            // ── Header ─────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'CLUB BENEFITS',
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                ),
-                _OutlinedIcon(icon: LucideIcons.bell,     onTap: () {}),
-                const SizedBox(width: 8),
-                _OutlinedIcon(icon: LucideIcons.calendar, onTap: () {}),
-              ],
+                  _OutlinedIcon(icon: LucideIcons.bell,     onTap: () {}),
+                  const SizedBox(width: 8),
+                  _OutlinedIcon(
+                    icon: LucideIcons.calendar,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
 
           // ── Category tabs ──────────────────────────────────────────────────
           Container(
@@ -300,8 +363,10 @@ class _ClubBenefitsContentState extends State<ClubBenefitsContent> {
                         horizontal: isWide ? 20 : 16),
                     child: _buildGrid(context, isWide, cols),
                   ),
-                  const SizedBox(height: 32),
-                  _buildFooter(),
+                  if (!kIsWeb) ...[
+                    const SizedBox(height: 32),
+                    _buildFooter(),
+                  ],
                 ],
               ),
             ),
@@ -426,9 +491,11 @@ class _ClubBenefitsContentState extends State<ClubBenefitsContent> {
             ),
           ),
           // Instagram
-          GestureDetector(
-            onTap: ExternalLinks.openInstagram,
-            child: const Icon(LucideIcons.instagram, size: 20, color: Colors.black54),
+          HoverCursor(
+            child: GestureDetector(
+              onTap: ExternalLinks.openInstagram,
+              child: const Icon(LucideIcons.instagram, size: 20, color: Colors.black54),
+            ),
           ),
           // Links
           Row(

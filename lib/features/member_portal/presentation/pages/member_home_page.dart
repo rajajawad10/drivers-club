@@ -12,6 +12,7 @@ import 'package:pitstop/features/member_portal/presentation/pages/notifications_
 
 import 'package:pitstop/features/member_portal/presentation/pages/dining_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/room_booking_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,6 +20,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 class MemberHomePage extends StatefulWidget {
   const MemberHomePage({super.key});
@@ -27,7 +29,8 @@ class MemberHomePage extends StatefulWidget {
   State<MemberHomePage> createState() => _MemberHomePageState();
 }
 
-class _MemberHomePageState extends State<MemberHomePage> {
+class _MemberHomePageState extends State<MemberHomePage>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -38,8 +41,35 @@ class _MemberHomePageState extends State<MemberHomePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthProvider>().loadProfile();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<AuthProvider>().loadProfile();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final r = R.of(context);
+    if (kIsWeb) {
+      return const BlogListPage();
+    }
     // On wide screens show a side nav instead of bottom nav
     if (r.isDesktop || r.isTablet) {
       return _WideLayout(
@@ -111,13 +141,12 @@ class _MobileLayout extends StatelessWidget {
             final avatarBase64 = authProvider.currentUser?.avatarBase64;
             final avatarUrl = authProvider.currentUser?.avatarUrl;
             final avatarBytes = _decodeBase64Image(avatarBase64);
-            final imageProvider = userProvider.profileImage != null
-                ? FileImage(userProvider.profileImage!)
-                : (avatarBytes != null
+            final imageProvider = userProvider.profileImageProvider ??
+                (avatarBytes != null
                     ? MemoryImage(avatarBytes)
                     : (avatarUrl != null && avatarUrl.isNotEmpty
                         ? NetworkImage(avatarUrl)
-                        : const AssetImage('')
+                        : const AssetImage('assets/images/user_profile.png')
                             as ImageProvider));
             return CircleAvatar(
               radius: 16,
@@ -274,7 +303,11 @@ class _WideLayout extends StatelessWidget {
             const VerticalDivider(width: 1),
             // Main content
             Expanded(
-              child: screens[currentIndex],
+              child: MaxWidthPage(
+                child: WebSelectionArea(
+                  child: screens[currentIndex],
+                ),
+              ),
             ),
           ],
         ),
@@ -325,41 +358,48 @@ class _NavRailItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        padding:
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFFE45D25).withOpacity(0.1)
-              : Colors.transparent,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(icon,
-                size: 20,
-                color: selected
-                    ? const Color(0xFFE45D25)
-                    : Colors.grey[600]),
-            if (showLabel) ...[
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight:
-                  selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected
-                      ? const Color(0xFFE45D25)
-                      : Colors.grey[700],
-                ),
-              ),
-            ],
-          ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFFE45D25).withOpacity(0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(icon,
+                    size: 20,
+                    color: selected
+                        ? const Color(0xFFE45D25)
+                        : Colors.grey[600]),
+                if (showLabel) ...[
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected
+                          ? const Color(0xFFE45D25)
+                          : Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -412,18 +452,20 @@ class HomeContent extends StatelessWidget {
                 color: const Color(0xFF1E1E2C),
               ),
             ),
-            GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const BlogListPage()),
-              ),
-              child: Text(
-                "View All",
-                style: GoogleFonts.inter(
-                  fontSize: r.sp(13),
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFE45D25),
+            HoverCursor(
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const BlogListPage()),
+                ),
+                child: Text(
+                  "View All",
+                  style: GoogleFonts.inter(
+                    fontSize: r.sp(13),
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFFE45D25),
+                  ),
                 ),
               ),
             ),
@@ -496,151 +538,159 @@ class HomeContent extends StatelessWidget {
 
   Widget _quickAction(
       BuildContext context, R r, IconData icon, String label) {
-    return GestureDetector(
-      onTap: () {
-        if (label == "Events") {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const ExploreEventsPage()));
-        } else if (label == "Dining") {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const DiningPage()));
-        } else if (label == "Rooms") {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const RoomBookingPage()));
-        } else if (label == "Club") {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const ClubHousePage()));
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            height: r.adaptive(mobile: 56.0, tablet: 64.0, desktop: 68.0),
-            width:  r.adaptive(mobile: 56.0, tablet: 64.0, desktop: 68.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+    return HoverCursor(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            if (label == "Events") {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ExploreEventsPage()));
+            } else if (label == "Dining") {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const DiningPage()));
+            } else if (label == "Rooms") {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const RoomBookingPage()));
+            } else if (label == "Club") {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ClubHousePage()));
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: r.adaptive(mobile: 56.0, tablet: 64.0, desktop: 68.0),
+                width:  r.adaptive(mobile: 56.0, tablet: 64.0, desktop: 68.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Icon(icon,
-                color: const Color(0xFFE45D25),
-                size: r.adaptive(mobile: 24.0, tablet: 28.0, desktop: 30.0)),
-          ),
-          const SizedBox(height: 8),
-          Flexible(
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: r.sp(11),
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1E1E2C),
+                child: Icon(icon,
+                    color: const Color(0xFFE45D25),
+                    size: r.adaptive(mobile: 24.0, tablet: 28.0, desktop: 30.0)),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ).animate().scale(delay: 200.ms),
+              const SizedBox(height: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1E1E2C),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ).animate().scale(delay: 200.ms),
+        ),
+      ),
     );
   }
 
   Widget _newsCard(BuildContext context, R r, String img, String title,
       String subtitle, String tag) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: ClipRRect(
-                  borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    img,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey[200],
-                      child: const Icon(LucideIcons.image,
-                          size: 50, color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.92),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    tag,
-                    style: GoogleFonts.inter(
-                      fontSize: r.sp(9),
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFE45D25),
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return HoverCard(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: r.sp(17),
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E1E2C),
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: ClipRRect(
+                    borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: Image.network(
+                      img,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey[200],
+                        child: const Icon(LucideIcons.image,
+                            size: 50, color: Colors.grey),
+                      ),
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                      fontSize: r.sp(12), color: Colors.grey[600]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      tag,
+                      style: GoogleFonts.inter(
+                        fontSize: r.sp(9),
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFE45D25),
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn().slideY(begin: 0.1);
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: r.sp(17),
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E1E2C),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                        fontSize: r.sp(12), color: Colors.grey[600]),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ).animate().fadeIn().slideY(begin: 0.1),
+    );
   }
 }
 
@@ -994,16 +1044,6 @@ class BookingsScreen extends StatelessWidget {
       ),
     ).animate().fadeIn(delay: (index * 100).ms).slideX();
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  CLUB BENEFITS SCREEN
-// ─────────────────────────────────────────────────────────────────────────────
-class ClubBenefitsScreen extends StatelessWidget {
-  const ClubBenefitsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) => const ClubBenefitsContent();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

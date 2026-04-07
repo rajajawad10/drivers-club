@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pitstop/core/responsive.dart';
 import 'room_details_page.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/core/web_routes.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Room Booking Page  –  Browse & filter all available rooms
@@ -100,12 +104,8 @@ class _RoomBookingPageState extends State<RoomBookingPage> {
     final size   = MediaQuery.of(context).size;
     final isWide = size.width > 600;
     final cols   = isWide ? 2 : 1;
-
-    return Scaffold(
-      backgroundColor: _bg,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
+    final content = Column(
+      children: [
           _buildTabs(),
           // Room count indicator
           Padding(
@@ -149,10 +149,55 @@ class _RoomBookingPageState extends State<RoomBookingPage> {
                     ),
                   ),
           ),
-        ],
-      ),
+      ],
+    );
+
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Book a Room',
+        selected: WebNavItem.bookRoom,
+        onNavSelected: (item) => _handleWebNav(context, item),
+        onCalendarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+        ),
+        child: content,
+        showFooter: false,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: _bg,
+      appBar: _buildAppBar(),
+      body: content,
     );
   }
+
+  void _handleWebNav(BuildContext context, WebNavItem item) {
+    late String route;
+    switch (item) {
+      case WebNavItem.newsfeed:
+        route = WebRoutes.newsfeed;
+        break;
+      case WebNavItem.events:
+        route = WebRoutes.events;
+        break;
+      case WebNavItem.dining:
+        route = WebRoutes.dining;
+        break;
+      case WebNavItem.bookRoom:
+        route = WebRoutes.bookRoom;
+        break;
+      case WebNavItem.clubHouse:
+        route = WebRoutes.clubHouse;
+        break;
+      case WebNavItem.clubBenefits:
+        route = WebRoutes.clubBenefits;
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
+  }
+
 
   // ── AppBar ────────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() => AppBar(
@@ -208,27 +253,29 @@ class _RoomBookingPageState extends State<RoomBookingPage> {
             itemBuilder: (_, i) {
               final tab = _tabs[i];
               final active = tab == _activeTab;
-              return GestureDetector(
-                onTap: () => setState(() => _activeTab = tab),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: active ? _navy : Colors.transparent,
-                        width: 2.5,
+              return HoverCursor(
+                child: GestureDetector(
+                  onTap: () => setState(() => _activeTab = tab),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: active ? _navy : Colors.transparent,
+                          width: 2.5,
+                        ),
                       ),
                     ),
-                  ),
-                  child: Text(
-                    tab,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight:
-                          active ? FontWeight.w800 : FontWeight.w500,
-                      color: active ? _navy : Colors.grey[400],
+                    child: Text(
+                      tab,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight:
+                            active ? FontWeight.w800 : FontWeight.w500,
+                        color: active ? _navy : Colors.grey[400],
+                      ),
                     ),
                   ),
                 ),
@@ -269,23 +316,24 @@ class _RoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return HoverCursor(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // ── Image ──────────────────────────────────────────────────────
             Expanded(
               flex: 5,
@@ -452,7 +500,8 @@ class _RoomCard extends StatelessWidget {
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'board_room_booking_page.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Room Details Page
@@ -127,9 +128,11 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leading: HoverCursor(
+          child: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -400,11 +403,13 @@ class _RoomDetailsPageState extends State<RoomDetailsPage> {
 
           // Date field
           _fieldLabel('Date'),
-          GestureDetector(
-            onTap: _pickDate,
-            child: _inputBox(
-              _formatDate(_selectedDate),
-              LucideIcons.calendarDays,
+          HoverCursor(
+            child: GestureDetector(
+              onTap: _pickDate,
+              child: _inputBox(
+                _formatDate(_selectedDate),
+                LucideIcons.calendarDays,
+              ),
             ),
           ),
 
@@ -622,120 +627,122 @@ class _RelatedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RoomDetailsPage(roomData: room),
+    return HoverCursor(
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RoomDetailsPage(roomData: room),
+          ),
         ),
-      ),
-      child: Container(
-        width: 220,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(4)),
-              child: Image.network(
-                room['image']!,
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    Container(height: 150, color: Colors.grey[200]),
+        child: Container(
+          width: 220,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(4)),
+                child: Image.network(
+                  room['image']!,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(height: 150, color: Colors.grey[200]),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 3),
-                    color: Colors.grey[100],
-                    child: Text(
-                      room['tag']!,
-                      style: GoogleFonts.inter(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.black,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    room['title']!,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1E1E2C),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(LucideIcons.users,
-                          size: 12, color: Colors.grey[400]),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: Text(
-                          room['capacity']!,
-                          style: GoogleFonts.inter(
-                              fontSize: 11, color: Colors.grey[500]),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 34,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              RoomDetailsPage(roomData: room),
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.black),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4)),
-                        padding: EdgeInsets.zero,
-                      ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      color: Colors.grey[100],
                       child: Text(
-                        'VIEW ROOM',
+                        room['tag']!,
                         style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
                           color: Colors.black,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      room['title']!,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E1E2C),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(LucideIcons.users,
+                            size: 12, color: Colors.grey[400]),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            room['capacity']!,
+                            style: GoogleFonts.inter(
+                                fontSize: 11, color: Colors.grey[500]),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 34,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                RoomDetailsPage(roomData: room),
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.black),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: Text(
+                          'VIEW ROOM',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -749,27 +756,29 @@ class _SmallBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: onPressed != null
-              ? const Color(0xFFF5F4F0)
-              : Colors.grey[100],
-          border: Border.all(
+    return HoverCursor(
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
             color: onPressed != null
-                ? Colors.grey.shade300
-                : Colors.grey.shade200,
+                ? const Color(0xFFF5F4F0)
+                : Colors.grey[100],
+            border: Border.all(
+              color: onPressed != null
+                  ? Colors.grey.shade300
+                  : Colors.grey.shade200,
+            ),
           ),
+          child: Icon(icon,
+              size: 16,
+              color: onPressed != null
+                  ? const Color(0xFF1E1E2C)
+                  : Colors.grey[300]),
         ),
-        child: Icon(icon,
-            size: 16,
-            color: onPressed != null
-                ? const Color(0xFF1E1E2C)
-                : Colors.grey[300]),
       ),
     );
   }

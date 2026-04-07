@@ -1,9 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'notifications_page.dart';
 import 'dining_booking_page.dart';
 import 'package:pitstop/core/utils/external_links.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/core/web_routes.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Dining Page  — matches the reference design exactly
@@ -60,15 +64,14 @@ class _DiningPageState extends State<DiningPage> {
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: Container(
-          color: _bg,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header ───────────────────────────────────────────────────────
+    final content = SafeArea(
+      child: Container(
+        color: _bg,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!kIsWeb)
+              // ── Header ───────────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
                 child: Row(
@@ -91,7 +94,13 @@ class _DiningPageState extends State<DiningPage> {
                               builder: (_) => const NotificationsPage())),
                     ),
                     const SizedBox(width: 8),
-                    _OutlinedIcon(icon: LucideIcons.calendar, onTap: () {}),
+                    _OutlinedIcon(
+                      icon: LucideIcons.calendar,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -110,12 +119,60 @@ class _DiningPageState extends State<DiningPage> {
                   ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
+
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Dining',
+        selected: WebNavItem.dining,
+        onNavSelected: (item) => _handleWebNav(context, item),
+        onBellTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const NotificationsPage()),
+        ),
+        onCalendarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+        ),
+        child: content,
+        showFooter: false,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: _bg,
+      body: content,
+    );
   }
+
+  void _handleWebNav(BuildContext context, WebNavItem item) {
+    late String route;
+    switch (item) {
+      case WebNavItem.newsfeed:
+        route = WebRoutes.newsfeed;
+        break;
+      case WebNavItem.events:
+        route = WebRoutes.events;
+        break;
+      case WebNavItem.dining:
+        route = WebRoutes.dining;
+        break;
+      case WebNavItem.bookRoom:
+        route = WebRoutes.bookRoom;
+        break;
+      case WebNavItem.clubHouse:
+        route = WebRoutes.clubHouse;
+        break;
+      case WebNavItem.clubBenefits:
+        route = WebRoutes.clubBenefits;
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
+  }
+
 
   // ── Tab bar ────────────────────────────────────────────────────────────────
   Widget _tabBar() {
@@ -526,7 +583,13 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                                builder: (_) => const NotificationsPage())),
                      ),
                      const SizedBox(width: 8),
-                     _OutlinedIcon(icon: LucideIcons.calendar, onTap: () {}),
+                     _OutlinedIcon(
+                       icon: LucideIcons.calendar,
+                       onTap: () => Navigator.push(
+                         context,
+                         MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                       ),
+                     ),
                    ],
                  ),
                ),
@@ -952,10 +1015,12 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   size: 12, color: Colors.black87),
             ),
           ),
-          GestureDetector(
-            onTap: ExternalLinks.openInstagram,
-            child: const Icon(LucideIcons.instagram,
-                size: 18, color: Colors.black54),
+          HoverCursor(
+            child: GestureDetector(
+              onTap: ExternalLinks.openInstagram,
+              child: const Icon(LucideIcons.instagram,
+                  size: 18, color: Colors.black54),
+            ),
           ),
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) =>
@@ -1055,7 +1120,13 @@ class _PrivateDiningDetailPageState
                               builder: (_) => const NotificationsPage())),
                     ),
                     const SizedBox(width: 8),
-                    _OutlinedIcon(icon: LucideIcons.calendar, onTap: () {}),
+                    _OutlinedIcon(
+                      icon: LucideIcons.calendar,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1380,10 +1451,12 @@ class _PrivateDiningDetailPageState
                   size: 12, color: Colors.black87),
             ),
           ),
-          GestureDetector(
-            onTap: ExternalLinks.openInstagram,
-            child: const Icon(LucideIcons.instagram,
-                size: 18, color: Colors.black54),
+          HoverCursor(
+            child: GestureDetector(
+              onTap: ExternalLinks.openInstagram,
+              child: const Icon(LucideIcons.instagram,
+                  size: 18, color: Colors.black54),
+            ),
           ),
           Row(
             children: ['FAQ', 'Terms', 'Privacy'].map((l) =>

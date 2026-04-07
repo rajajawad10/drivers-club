@@ -1,9 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'notifications_page.dart';
 import 'package:pitstop/core/utils/external_links.dart';
+import 'package:pitstop/core/web_utils.dart';
+import 'package:pitstop/core/web_routes.dart';
+import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  NEWSFEED PAGE  — matches website grid layout exactly
@@ -76,13 +80,11 @@ class BlogListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final size   = MediaQuery.of(context).size;
     final isWide = size.width > 600;
-
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ───────────────────────────────────────────────────────
+    final content = SafeArea(
+      child: Column(
+        children: [
+          if (!kIsWeb) ...[
+            // ── Header ─────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
               child: Row(
@@ -109,13 +111,16 @@ class BlogListPage extends StatelessWidget {
                   // Calendar icon
                   _OutlinedIconBtn(
                     icon: LucideIcons.calendarDays,
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MySchedulePage()),
+                    ),
                   ),
                 ],
               ),
             ),
-
             Divider(color: _divider, height: 1),
+          ],
 
             // ── Grid ─────────────────────────────────────────────────────────
             Expanded(
@@ -155,10 +160,12 @@ class BlogListPage extends StatelessWidget {
                     ),
                   ),
                   // Instagram
-                  GestureDetector(
-                    onTap: ExternalLinks.openInstagram,
-                    child: const Icon(LucideIcons.instagram,
-                        size: 20, color: Colors.black54),
+                  HoverCursor(
+                    child: GestureDetector(
+                      onTap: ExternalLinks.openInstagram,
+                      child: const Icon(LucideIcons.instagram,
+                          size: 20, color: Colors.black54),
+                    ),
                   ),
                   // Links
                   Row(
@@ -176,8 +183,52 @@ class BlogListPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      );
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Newsfeed',
+        selected: WebNavItem.newsfeed,
+        onNavSelected: (item) => _handleWebNav(context, item),
+        onBellTap: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const NotificationsPage())),
+        onCalendarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MySchedulePage()),
+        ),
+        child: content,
+        showFooter: false,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: _bg,
+      body: content,
     );
+  }
+
+  void _handleWebNav(BuildContext context, WebNavItem item) {
+    late String route;
+    switch (item) {
+      case WebNavItem.newsfeed:
+        route = WebRoutes.newsfeed;
+        break;
+      case WebNavItem.events:
+        route = WebRoutes.events;
+        break;
+      case WebNavItem.dining:
+        route = WebRoutes.dining;
+        break;
+      case WebNavItem.bookRoom:
+        route = WebRoutes.bookRoom;
+        break;
+      case WebNavItem.clubHouse:
+        route = WebRoutes.clubHouse;
+        break;
+      case WebNavItem.clubBenefits:
+        route = WebRoutes.clubBenefits;
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
   }
 }
 
@@ -485,10 +536,12 @@ class BlogDetailsPage extends StatelessWidget {
                               size: 12, color: Colors.black87),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: ExternalLinks.openInstagram,
-                        child: const Icon(LucideIcons.instagram,
-                            size: 18, color: Colors.black54),
+                      HoverCursor(
+                        child: GestureDetector(
+                          onTap: ExternalLinks.openInstagram,
+                          child: const Icon(LucideIcons.instagram,
+                              size: 18, color: Colors.black54),
+                        ),
                       ),
                       Row(
                         children: ['FAQ', 'Terms', 'Privacy']

@@ -1,18 +1,24 @@
-import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 class UserProvider extends ChangeNotifier {
-  File? _profileImage;
+  Uint8List? _profileBytes;
 
-  File? get profileImage => _profileImage;
+  Uint8List? get profileImageBytes => _profileBytes;
 
-  void updateProfileImage(File newImage) {
-    _profileImage = newImage;
+  void updateProfileImageBytes(Uint8List bytes) {
+    _profileBytes = bytes;
     notifyListeners();
   }
 
   void clearProfileImage() {
-    _profileImage = null;
+    _profileBytes = null;
     notifyListeners();
+  }
+
+  ImageProvider? get profileImageProvider {
+    if (_profileBytes != null) return MemoryImage(_profileBytes!);
+    return null;
   }
 }

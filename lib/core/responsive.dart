@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,9 +33,10 @@ class R {
   double get height  => _size.height;
 
   // ── Breakpoints ───────────────────────────────────────────────────────────
-  bool get isMobile  => width < 600;
-  bool get isTablet  => width >= 600 && width < 1024;
-  bool get isDesktop => width >= 1024;
+  bool get isMobile  => kIsWeb ? width < 720 : width < 600;
+  bool get isTablet  => kIsWeb ? width >= 720 && width < 1200
+      : width >= 600 && width < 1024;
+  bool get isDesktop => kIsWeb ? width >= 1200 : width >= 1024;
 
   // ── Adaptive values ───────────────────────────────────────────────────────
 
@@ -46,7 +48,9 @@ class R {
 
   /// Scaled font size — scales relative to 375pt baseline (iPhone SE)
   double sp(double size) {
-    final scale = (width / 375).clamp(0.85, 1.6);
+    final base = kIsWeb ? 1280.0 : 375.0;
+    final safeWidth = width.clamp(320, kIsWeb ? 1200 : 1024);
+    final scale = (safeWidth / base).clamp(0.85, 1.35);
     return size * scale;
   }
 
@@ -127,6 +131,31 @@ class ResponsivePadding extends StatelessWidget {
               horizontal: mobilePadding ?? r.hp),
           child: child,
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Max-width page wrapper
+// ─────────────────────────────────────────────────────────────────────────────
+class MaxWidthPage extends StatelessWidget {
+  final Widget child;
+  final double maxWidth;
+
+  const MaxWidthPage({
+    super.key,
+    required this.child,
+    this.maxWidth = 1200,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Dining Booking Page
@@ -124,9 +125,11 @@ class _DiningBookingPageState extends State<DiningBookingPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
+        leading: HoverCursor(
+          child: IconButton(
+            icon: const Icon(LucideIcons.arrowLeft, color: Colors.black, size: 20),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         title: Text(
           widget.title.toUpperCase(),
@@ -234,11 +237,13 @@ class _DiningBookingPageState extends State<DiningBookingPage> {
 
                 // ── Date ──────────────────────────────────────────────
                 _fieldLabel('DATE'),
-                GestureDetector(
-                  onTap: _pickDate,
-                  child: _inputRow(
-                    _shortDate(_date),
-                    LucideIcons.calendarDays,
+                HoverCursor(
+                  child: GestureDetector(
+                    onTap: _pickDate,
+                    child: _inputRow(
+                      _shortDate(_date),
+                      LucideIcons.calendarDays,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -346,31 +351,33 @@ class _DiningBookingPageState extends State<DiningBookingPage> {
                   runSpacing: 8,
                   children: _occasions.map((o) {
                     final selected = _selectedOccasion == o;
-                    return GestureDetector(
-                      onTap: () =>
-                          setState(() => _selectedOccasion = o),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: selected ? _dark : Colors.white,
-                          borderRadius: BorderRadius.circular(2),
-                          border: Border.all(
-                            color:
-                                selected ? _dark : Colors.grey.shade300,
+                    return HoverCursor(
+                      child: GestureDetector(
+                        onTap: () =>
+                            setState(() => _selectedOccasion = o),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected ? _dark : Colors.white,
+                            borderRadius: BorderRadius.circular(2),
+                            border: Border.all(
+                              color:
+                                  selected ? _dark : Colors.grey.shade300,
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          o,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: selected
-                                ? Colors.white
-                                : Colors.black87,
+                          child: Text(
+                            o,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: selected
+                                  ? Colors.white
+                                  : Colors.black87,
+                            ),
                           ),
                         ),
                       ),
@@ -720,10 +727,12 @@ class _DiningBookingPageState extends State<DiningBookingPage> {
   }) =>
       Column(
         children: [
-          GestureDetector(
-            onTap: onUp,
-            child: const Icon(LucideIcons.chevronUp,
-                size: 18, color: Colors.black45),
+          HoverCursor(
+            child: GestureDetector(
+              onTap: onUp,
+              child: const Icon(LucideIcons.chevronUp,
+                  size: 18, color: Colors.black45),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -735,10 +744,12 @@ class _DiningBookingPageState extends State<DiningBookingPage> {
             ),
           ),
           const SizedBox(height: 4),
-          GestureDetector(
-            onTap: onDown,
-            child: const Icon(LucideIcons.chevronDown,
-                size: 18, color: Colors.black45),
+          HoverCursor(
+            child: GestureDetector(
+              onTap: onDown,
+              child: const Icon(LucideIcons.chevronDown,
+                  size: 18, color: Colors.black45),
+            ),
           ),
         ],
       );
