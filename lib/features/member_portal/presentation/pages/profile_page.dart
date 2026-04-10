@@ -11,6 +11,7 @@ import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/features/auth/presentation/pages/minimal_login_page.dart';
 import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
+import 'package:pitstop/core/storage/secure_storage.dart';
 import 'package:pitstop/core/web_utils.dart';
 
 
@@ -272,6 +273,14 @@ class _ProfileContentState extends State<ProfileContent>
       _emailOptIn = user.emailOptIn ?? _emailOptIn;
       _country = user.country ?? user.land ?? _country;
       _region  = user.region ?? _region;
+    });
+
+    final tags = await SecureStorage.getInterestTags();
+    if (!mounted || tags.isEmpty) return;
+    setState(() {
+      _selectedInterests
+        ..clear()
+        ..addAll(tags);
     });
   }
 

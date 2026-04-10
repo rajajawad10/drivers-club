@@ -9,6 +9,7 @@ import 'package:pitstop/features/member_portal/presentation/pages/club_benefits_
 import 'package:pitstop/features/member_portal/presentation/pages/profile_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/booking_details_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/notifications_page.dart';
+import 'package:pitstop/features/communities/presentation/pages/communities_page.dart';
 
 import 'package:pitstop/features/member_portal/presentation/pages/dining_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/room_booking_page.dart';
@@ -37,6 +38,7 @@ class _MemberHomePageState extends State<MemberHomePage>
     const HomeContent(),
     const BookingsScreen(),
     const ClubBenefitsScreen(),
+    const CommunitiesPage(),
     const ProfileScreen(),
   ];
 
@@ -201,6 +203,8 @@ class _MobileLayout extends StatelessWidget {
         BottomNavigationBarItem(
             icon: Icon(LucideIcons.crown), label: "Club"),
         BottomNavigationBarItem(
+            icon: Icon(LucideIcons.users), label: "Communities"),
+        BottomNavigationBarItem(
             icon: Icon(LucideIcons.user), label: "Profile"),
       ],
     ),
@@ -246,6 +250,7 @@ class _WideLayout extends StatelessWidget {
     (icon: LucideIcons.home, label: 'Home'),
     (icon: LucideIcons.calendarCheck, label: 'Bookings'),
     (icon: LucideIcons.crown, label: 'Club'),
+    (icon: LucideIcons.users, label: 'Communities'),
     (icon: LucideIcons.user, label: 'Profile'),
   ];
 

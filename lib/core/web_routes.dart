@@ -5,4 +5,5 @@ class WebRoutes {
   static const bookRoom = '/web/book-room';
   static const clubHouse = '/web/club-house';
   static const clubBenefits = '/web/club-benefits';
+  static const communities = '/communities';
 }

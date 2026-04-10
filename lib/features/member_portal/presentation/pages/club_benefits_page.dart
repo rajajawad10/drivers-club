@@ -66,6 +66,9 @@ class ClubBenefitsScreen extends StatelessWidget {
       case WebNavItem.clubBenefits:
         route = WebRoutes.clubBenefits;
         break;
+      case WebNavItem.communities:
+        route = WebRoutes.communities;
+        break;
     }
     Navigator.pushReplacementNamed(context, route);
   }

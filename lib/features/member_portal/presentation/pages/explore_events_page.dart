@@ -13,6 +13,7 @@ import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/member_home_page.dart';
 import 'package:pitstop/features/member_portal/presentation/providers/events_provider.dart';
 import 'package:pitstop/features/member_portal/domain/models/event_model.dart';
+import 'package:pitstop/core/responsive.dart';
 import 'package:pitstop/core/web_utils.dart';
 import 'package:pitstop/core/web_routes.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/notifications_page.dart';
@@ -717,6 +718,9 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
       case WebNavItem.clubBenefits:
         route = WebRoutes.clubBenefits;
         break;
+      case WebNavItem.communities:
+        route = WebRoutes.communities;
+        break;
     }
     Navigator.pushReplacementNamed(context, route);
   }
@@ -742,7 +746,7 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
       "title": "SUMMER ROOFTOP PARTY",
       "category": "All",
       "date": "14\nFEB",
-      "image": "https://images.unsplash.com/photo-1514525253440-b393452e8d26?w=800&q=80",
+      "image": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&q=80",
       "tags": ["EVENT"],
       "location": "Club House",
       "time": "12:00 PM",
@@ -1164,8 +1168,57 @@ class _ExploreEventsPageState extends State<ExploreEventsPage> {
     }
 
     // 3. List Builder
+    if (kIsWeb) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final crossAxisCount = width >= 1200
+              ? 3
+              : width >= 900
+                  ? 2
+                  : 1;
+          final hPad = width < kWebNavDrawerBreakpoint ? 12.0 : 24.0;
+          return GridView.builder(
+            key: ValueKey(selectedCategory),
+            padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 24),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              childAspectRatio: width >= 1200
+                  ? 0.78
+                  : width < kWebNavDrawerBreakpoint
+                      ? 0.68
+                      : 0.82,
+            ),
+            itemCount: filteredList.length,
+            itemBuilder: (context, index) {
+              final event = filteredList[index];
+              return _EventCard(
+                title: event["title"],
+                tag: (event["tags"] as List<String>).first,
+                additionalTags: (event["tags"] as List<String>).sublist(1),
+                date: event["date"],
+                image: event["image"] ?? "",
+                imageBytes: event["imageBytes"],
+                headerColor: event["headerColor"],
+                headerIcon: event["headerIcon"],
+                index: index,
+                location: event["location"],
+                time: event["time"],
+                description: event["description"],
+                price: event["price"] ?? "Free",
+                isButton: event["isButton"] ?? false,
+                ticketStatus: event["ticketStatus"] ?? "Tickets Available",
+                hasFoodBadge: event["hasFoodBadge"] ?? false,
+              );
+            },
+          );
+        },
+      );
+    }
     return ListView.builder(
-      key: ValueKey(selectedCategory), // Key for animation
+      key: ValueKey(selectedCategory),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: filteredList.length,
       itemBuilder: (context, index) {
@@ -1346,199 +1399,227 @@ class _EventCard extends StatelessWidget {
           )),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4), // Minimalist square rounded styling
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image or Colored Header with Date Overlay
-            Stack(
-              children: [
-                if (imageBytes != null)
-                  Image.memory(
-                    imageBytes!,
-                    height: 220,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 220,
-                        width: double.infinity,
-                        color: Colors.grey[200],
-                        child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
-                      );
-                    },
-                  )
-                else if (image.isNotEmpty)
-                  Image.network(
-                    image,
-                    height: 220,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 220,
-                        width: double.infinity,
-                        color: Colors.grey[200],
-                        child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
-                      );
-                    },
-                  )
-                else
-                  Container(
-                    height: 220,
-                    width: double.infinity,
-                    color: headerColor ?? Colors.grey,
-                    child: Center(
-                      child: Icon(headerIcon ?? LucideIcons.star, size: 80, color: Colors.white),
-                    ),
-                  ),
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    color: const Color(0xFF1E1E2C), // Dark overlay for date
-                    child: Text(
-                      date,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        height: 1.1,
-                      ),
-                    ),
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWeb = kIsWeb;
+          final imageHeight = isWeb ? constraints.maxWidth * 0.56 : 220.0;
+          final padding = isWeb ? 16.0 : 20.0;
+          final titleSize = isWeb ? 16.0 : 18.0;
+          return Container(
+            margin: EdgeInsets.only(bottom: isWeb ? 0 : 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF1E1E2C),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Tags
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildTag(tag),
-                      ...additionalTags.map((t) => _buildTag(t)).toList(),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Description
-                  Text(
-                    description,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      height: 1.5,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Details Row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(LucideIcons.mapPin, size: 16, color: Colors.grey),
-                      const SizedBox(width: 6),
-                      Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image or Colored Header with Date Overlay
+                Stack(
+                  children: [
+                    if (imageBytes != null)
+                      Image.memory(
+                        imageBytes!,
+                        height: imageHeight,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: imageHeight,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                            child: const Icon(LucideIcons.image, size: 50,
+                                color: Colors.grey),
+                          );
+                        },
+                      )
+                    else
+                      if (image.isNotEmpty)
+                        Image.network(
+                          image,
+                          height: imageHeight,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: imageHeight,
+                              width: double.infinity,
+                              color: Colors.grey[200],
+                              child: const Icon(LucideIcons.image, size: 50,
+                                  color: Colors.grey),
+                            );
+                          },
+                        )
+                      else
+                        Container(
+                          height: imageHeight,
+                          width: double.infinity,
+                          color: headerColor ?? Colors.grey,
+                          child: Center(
+                            child: Icon(
+                                headerIcon ?? LucideIcons.star, size: 80,
+                                color: Colors.white),
+                          ),
+                        ),
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        color: const Color(0xFF1E1E2C),
                         child: Text(
-                          location,
-                          style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[700]),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          date,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1.1,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
+                    ),
+                  ],
+                ),
+
+                Padding(
+                  padding: EdgeInsets.all(padding),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(LucideIcons.clock, size: 16, color: Colors.grey),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          time,
-                          style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[700]),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      // Title
+                      Text(
+                        title,
+                        style: GoogleFonts.inter(
+                          fontSize: titleSize,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF1E1E2C),
+                          letterSpacing: 0.5,
                         ),
                       ),
-                    ],
-                  ),
+                      const SizedBox(height: 8),
 
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 12),
-
-                  // Bottom Action Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                      // Tags
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
-                          Icon(LucideIcons.tag, size: 14, color: isButton ? const Color(0xFFE45D25) : Colors.grey),
+                          _buildTag(tag),
+                          ...additionalTags.map((t) => _buildTag(t)).toList(),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Description
+                      Text(
+                        description,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.5,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Details Row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(LucideIcons.mapPin,
+                              size: 16, color: Colors.grey),
                           const SizedBox(width: 6),
-                          Text(
-                            price,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: isButton ? FontWeight.bold : FontWeight.w500,
-                              color: isButton ? const Color(0xFFE45D25) : Colors.grey[700],
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: GoogleFonts.inter(
+                                  fontSize: 13, color: Colors.grey[700]),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                      Text(
-                        ticketStatus,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFFE45D25), // Brand Red/Orange
-                        ),
+                      const SizedBox(height: 4),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(LucideIcons.clock,
+                              size: 16, color: Colors.grey),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              time,
+                              style: GoogleFonts.inter(
+                                  fontSize: 13, color: Colors.grey[700]),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
+
+                      if (!isWeb) ...[
+                        const SizedBox(height: 20),
+                        const Divider(),
+                        const SizedBox(height: 12),
+
+                        // Bottom Action Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(LucideIcons.tag,
+                                    size: 14,
+                                    color: isButton
+                                        ? const Color(0xFFE45D25)
+                                        : Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  price,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: isButton
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                    color: isButton
+                                        ? const Color(0xFFE45D25)
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              ticketStatus,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFFE45D25),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: (index * 100).ms).slideY(begin: 0.1);
+          );
+
+        }
+    ).animate().fadeIn(delay: (index * 100).ms).slideY(begin: 0.1));
   }
 
   Widget _buildTag(String label) {

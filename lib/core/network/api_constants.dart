@@ -16,5 +16,14 @@ class ApiConstants {
   static String getEventById(String crmId, String eventId) =>
       '/crms/$crmId/events/$eventId';
 
+  // Communities endpoints
+  static const String communities = '/communities';
+  static String communityById(String id) => '/communities/$id';
+  static String joinCommunity(String id) => '/communities/$id/join';
+  static String leaveCommunity(String id) => '/communities/$id/leave';
+  static String communityMembers(String id) => '/communities/$id/members';
+  static const String myCommunities = '/communities/my';
+  static String notifyCommunity(String id) => '/communities/$id/notify';
+
   static const Duration timeout = Duration(seconds: 30);
 }

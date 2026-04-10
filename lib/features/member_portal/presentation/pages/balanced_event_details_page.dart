@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/add_to_cart_page.dart';
+import 'package:pitstop/core/web_utils.dart';
 
 class BalancedEventDetailsPage extends StatelessWidget {
   final String eventId;
@@ -33,6 +35,15 @@ class BalancedEventDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) {
+      return WebScaffold(
+        title: 'Event Details',
+        selected: WebNavItem.events,
+        onNavSelected: (item) => Navigator.pop(context),
+        showFooter: false,
+        child: _buildWebBody(context),
+      );
+    }
     // 1. Screen ki real dimensions
     final double screenW = MediaQuery.of(context).size.width;
     final double screenH = MediaQuery.of(context).size.height;
@@ -122,6 +133,107 @@ class BalancedEventDetailsPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildWebBody(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth >= 1200 ? 1100.0 : 960.0;
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(bottom: Radius.circular(24)),
+                    child: _buildHeroImage(height: 360),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              eventName.toUpperCase(),
+                              style: GoogleFonts.inter(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildTag(category),
+                            const SizedBox(height: 24),
+                            Text(
+                              "About",
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1E1E2C),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              description.isNotEmpty
+                                  ? description
+                                  : "Join us for an exclusive afternoon discussing global trends with industry leaders.",
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Colors.black87,
+                                height: 1.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        flex: 2,
+                        child: _buildDetailsCard(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeroImage({required double height}) {
+    final bytes = imageBytes ?? _decodeDataImage(image);
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
+        height: height,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+    return Image.network(
+      image,
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: height,
+        width: double.infinity,
+        color: Colors.grey[200],
+        child: const Icon(LucideIcons.image, size: 50, color: Colors.grey),
       ),
     );
   }

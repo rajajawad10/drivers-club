@@ -17,6 +17,9 @@ class SecureStorage {
   static const _firstNameKey    = 'first_name';
   static const _lastNameKey     = 'last_name';
   static const _crmIdKey        = 'crm_id';
+  static const _interestsKey    = 'interest_tags';
+  static const _interestOnboardedKey = 'interest_onboarded';
+  static const _memberBioKey    = 'member_bio';
   static const _loggedOutKey    = 'logged_out';
   static const _hasLoggedInKey  = 'has_logged_in';
 
@@ -77,6 +80,43 @@ class SecureStorage {
 
   static Future<String?> getCrmId() async {
     return await _storage.read(key: _crmIdKey);
+  }
+
+  // ── Interest tags ──────────────────────────────────────────────────────────
+
+  static Future<void> saveInterestTags(List<String> tags) async {
+    final value = tags.join(',');
+    await _storage.write(key: _interestsKey, value: value);
+  }
+
+  static Future<List<String>> getInterestTags() async {
+    final value = await _storage.read(key: _interestsKey);
+    if (value == null || value.trim().isEmpty) return [];
+    return value
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
+  static Future<void> setInterestOnboarded(bool value) async {
+    await _storage.write(
+        key: _interestOnboardedKey, value: value ? '1' : '0');
+  }
+
+  static Future<bool> getInterestOnboarded() async {
+    final value = await _storage.read(key: _interestOnboardedKey);
+    return value == '1';
+  }
+
+  // ── Member bio ────────────────────────────────────────────────────────────
+
+  static Future<void> saveMemberBio(String bio) async {
+    await _storage.write(key: _memberBioKey, value: bio);
+  }
+
+  static Future<String> getMemberBio() async {
+    return await _storage.read(key: _memberBioKey) ?? '';
   }
 
   // ── Clear everything on logout ─────────────────────────────────────────────

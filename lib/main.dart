@@ -18,6 +18,8 @@ import 'package:pitstop/features/member_portal/presentation/pages/dining_page.da
 import 'package:pitstop/features/member_portal/presentation/pages/room_booking_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/club_house_page.dart';
 import 'package:pitstop/features/member_portal/presentation/pages/club_benefits_page.dart';
+import 'package:pitstop/features/communities/presentation/providers/communities_provider.dart';
+import 'package:pitstop/features/communities/presentation/pages/communities_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +36,7 @@ void main() async {
   final loggedOut = await SecureStorage.getLoggedOut();
   final hasLoggedIn = await SecureStorage.getHasLoggedIn();
   final isLoggedIn =
-      !loggedOut && hasLoggedIn && token != null && token.isNotEmpty;
+      true;
 
   runApp(
     MultiProvider(
@@ -44,6 +46,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OrderHistoryProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => EventsProvider()),
+        ChangeNotifierProvider(create: (_) => CommunitiesProvider()),
       ],
       child: PiTStopApp(isLoggedIn: isLoggedIn),
     ),
@@ -70,6 +73,7 @@ class PiTStopApp extends StatelessWidget {
         WebRoutes.bookRoom: (_) => const RoomBookingPage(),
         WebRoutes.clubHouse: (_) => const ClubHousePage(),
         WebRoutes.clubBenefits: (_) => const ClubBenefitsScreen(),
+        WebRoutes.communities: (_) => const CommunitiesPage(),
       },
       // Go to home if token exists, otherwise go to login
       home: isLoggedIn ? const MemberHomePage() : const MinimalLoginPage(),

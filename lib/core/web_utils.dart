@@ -1,11 +1,16 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:pitstop/core/responsive.dart';
 import 'package:pitstop/core/utils/external_links.dart';
+import 'package:pitstop/core/web_history_stub.dart'
+    if (dart.library.html) 'package:pitstop/core/web_history_web.dart'
+        as web_history;
 import 'package:provider/provider.dart';
 import 'package:pitstop/core/providers/user_provider.dart';
 import 'package:pitstop/features/auth/presentation/providers/auth_provider.dart';
@@ -53,12 +58,20 @@ class HoverBuilder extends StatefulWidget {
 class _HoverBuilderState extends State<HoverBuilder> {
   bool _isHovered = false;
 
+  void _setHovered(bool value) {
+    if (_isHovered == value || !mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _isHovered == value) return;
+      setState(() => _isHovered = value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!kIsWeb) return widget.builder(context, false);
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
       child: widget.builder(context, _isHovered),
     );
   }
@@ -113,6 +126,7 @@ enum WebNavItem {
   bookRoom,
   clubHouse,
   clubBenefits,
+  communities,
 }
 
 class WebScaffold extends StatelessWidget {
@@ -122,6 +136,7 @@ class WebScaffold extends StatelessWidget {
   final ValueChanged<WebNavItem> onNavSelected;
   final VoidCallback? onBellTap;
   final VoidCallback? onCalendarTap;
+  final VoidCallback? onProfileTap;
   final bool showFooter;
 
   const WebScaffold({
@@ -132,77 +147,197 @@ class WebScaffold extends StatelessWidget {
     required this.onNavSelected,
     this.onBellTap,
     this.onCalendarTap,
+    this.onProfileTap,
     this.showFooter = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: Row(
-        children: [
-          _WebSidebar(
-            selected: selected,
-            onSelect: onNavSelected,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                _topBar(context),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1200),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                        child: child,
-                      ),
-                    ),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final narrow = w < kWebNavDrawerBreakpoint;
+        final horizontalPad = narrow ? 12.0 : 24.0;
+        final bodyPadding = EdgeInsets.fromLTRB(
+          horizontalPad,
+          narrow ? 12 : 20,
+          horizontalPad,
+          narrow ? 16 : 24,
+        );
+        final topBarPadding = EdgeInsets.fromLTRB(
+          horizontalPad,
+          narrow ? 12 : 16,
+          horizontalPad,
+          narrow ? 12 : 16,
+        );
+
+        Widget mainColumn(
+          BuildContext hostContext, {
+          VoidCallback? onOpenDrawer,
+        }) {
+          return Column(
+            children: [
+              Padding(
+                padding: topBarPadding,
+                child: _topBar(
+                  hostContext,
+                  padding: EdgeInsets.zero,
+                  onOpenDrawer: onOpenDrawer,
                 ),
-                if (showFooter) _footer(context),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: bodyPadding,
+                  child: child,
+                ),
+              ),
+              if (showFooter) _footer(hostContext, compact: narrow),
+            ],
+          );
+        }
+
+        if (!narrow) {
+          return Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            body: Row(
+              children: [
+                _WebSidebar(
+                  selected: selected,
+                  onSelect: onNavSelected,
+                ),
+                Expanded(
+                  child: mainColumn(context),
+                ),
               ],
             ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          drawer: Drawer(
+            width: math.min(288.0, w * 0.9),
+            child: SafeArea(
+              child: _WebSidebar(
+                selected: selected,
+                onSelect: (item) {
+                  onNavSelected(item);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
           ),
-        ],
-      ),
+          body: Builder(
+            builder: (scaffoldCtx) {
+              return mainColumn(
+                context,
+                onOpenDrawer: () => Scaffold.of(scaffoldCtx).openDrawer(),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _topBar(BuildContext context) {
+  Widget _topBar(
+    BuildContext context, {
+    required EdgeInsetsGeometry padding,
+    VoidCallback? onOpenDrawer,
+  }) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final titleSize = onOpenDrawer != null ? 16.0 : 18.0;
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+      padding: padding,
       child: Row(
         children: [
-          Text(
-            title.toUpperCase(),
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: theme.colorScheme.onSurface,
-              letterSpacing: 1.2,
+          if (onOpenDrawer != null) ...[
+            HoverCursor(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onOpenDrawer,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      LucideIcons.menu,
+                      size: 22,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-          const Spacer(),
+            const SizedBox(width: 6),
+          ],
           HoverCursor(
-            child: _iconSquare(
-              context,
-              icon: LucideIcons.bell,
-              onTap: onBellTap,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.maybePop(context);
+                  } else {
+                    web_history.platformWebHistoryBack();
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    LucideIcons.chevronLeft,
+                    size: 22,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 10),
-          HoverCursor(
-            child: _iconSquare(
-              context,
-              icon: LucideIcons.calendar,
-              onTap: onCalendarTap,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title.toUpperCase(),
+              style: GoogleFonts.inter(
+                fontSize: titleSize,
+                fontWeight: FontWeight.w900,
+                color: scheme.onSurface,
+                letterSpacing: 1.1,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (onBellTap != null) ...[
+            HoverCursor(
+              child: _iconSquare(
+                context,
+                icon: LucideIcons.bell,
+                onTap: onBellTap,
+              ),
+            ),
+            SizedBox(width: onOpenDrawer != null ? 6 : 10),
+          ],
+          if (onCalendarTap != null)
+            HoverCursor(
+              child: _iconSquare(
+                context,
+                icon: LucideIcons.calendar,
+                onTap: onCalendarTap,
+              ),
+            ),
+          if (onProfileTap != null) ...[
+            SizedBox(width: onOpenDrawer != null ? 6 : 10),
+            HoverCursor(
+              child: _iconSquare(
+                context,
+                icon: LucideIcons.user,
+                onTap: onProfileTap,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -226,42 +361,82 @@ class WebScaffold extends StatelessWidget {
     );
   }
 
-  Widget _footer(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+  Widget _footer(BuildContext context, {bool compact = false}) {
+    final scheme = Theme.of(context).colorScheme;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final crown = Container(
+      width: compact ? 26 : 28,
+      height: compact ? 26 : 28,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: scheme.onSurface.withValues(alpha: 0.55)),
+      ),
+      child: Center(
+        child: Icon(
+          LucideIcons.crown,
+          size: compact ? 11 : 12,
+          color: scheme.onSurface.withValues(alpha: 0.65),
+        ),
+      ),
+    );
+    final ig = HoverCursor(
+      child: GestureDetector(
+        onTap: ExternalLinks.openInstagram,
+        child: Icon(
+          LucideIcons.instagram,
+          size: compact ? 15 : 16,
+          color: scheme.onSurface.withValues(alpha: 0.65),
+        ),
+      ),
+    );
+    final links = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _footerLink(context, 'FAQ'),
+        SizedBox(width: compact ? 10 : 12),
+        _footerLink(context, 'Terms'),
+        SizedBox(width: compact ? 10 : 12),
+        _footerLink(context, 'Privacy'),
+      ],
+    );
+
+    if (compact) {
+      return Container(
+        padding: EdgeInsets.fromLTRB(12, 8, 12, 12 + bottomInset),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: scheme.onSurface.withValues(alpha: 0.08)),
+          ),
+        ),
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                crown,
+                const SizedBox(width: 14),
+                ig,
+              ],
+            ),
+            links,
+          ],
+        ),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+      padding: EdgeInsets.fromLTRB(24, 12, 24, 16 + bottomInset),
       child: Row(
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.onSurface.withValues(alpha: 0.55)),
-            ),
-            child: Center(
-              child: Icon(
-                LucideIcons.crown,
-                size: 12,
-                color: scheme.onSurface.withValues(alpha: 0.65),
-              ),
-            ),
-          ),
+          crown,
           const Spacer(),
-          HoverCursor(
-            child: GestureDetector(
-              onTap: ExternalLinks.openInstagram,
-              child: Icon(LucideIcons.instagram,
-                  size: 16, color: scheme.onSurface.withValues(alpha: 0.65)),
-            ),
-          ),
+          ig,
           const SizedBox(width: 24),
-          _footerLink(context, 'FAQ'),
-          const SizedBox(width: 12),
-          _footerLink(context, 'Terms'),
-          const SizedBox(width: 12),
-          _footerLink(context, 'Privacy'),
+          links,
         ],
       ),
     );
@@ -300,67 +475,80 @@ class _WebSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: 230,
       color: scheme.surface,
       child: Column(
         children: [
-          const SizedBox(height: 16),
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: scheme.onSurface.withValues(alpha: 0.12)),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(top: 16, bottom: 8),
+              children: [
+                Center(
+                  child: Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: scheme.surface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: scheme.onSurface.withValues(alpha: 0.12)),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/drivers_club.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _navItem(
+                  context,
+                  item: WebNavItem.newsfeed,
+                  icon: LucideIcons.star,
+                  label: 'NEWSFEED',
+                ),
+                _navItem(
+                  context,
+                  item: WebNavItem.events,
+                  icon: LucideIcons.calendar,
+                  label: 'EVENTS',
+                ),
+                _navItem(
+                  context,
+                  item: WebNavItem.dining,
+                  icon: LucideIcons.utensils,
+                  label: 'DINING',
+                ),
+                _navItem(
+                  context,
+                  item: WebNavItem.bookRoom,
+                  icon: LucideIcons.doorOpen,
+                  label: 'BOOK A ROOM',
+                ),
+                _navItem(
+                  context,
+                  item: WebNavItem.clubHouse,
+                  icon: LucideIcons.home,
+                  label: 'CLUB HOUSE',
+                ),
+                _navItem(
+                  context,
+                  item: WebNavItem.clubBenefits,
+                  icon: LucideIcons.gem,
+                  label: 'CLUB BENEFITS',
+                ),
+                _navItem(
+                  context,
+                  item: WebNavItem.communities,
+                  icon: LucideIcons.users,
+                  label: 'COMMUNITIES',
+                ),
+              ],
             ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/drivers_club.png',
-                fit: BoxFit.cover,
-              ),
-            ),
           ),
-          const SizedBox(height: 16),
-          _navItem(
-            context,
-            item: WebNavItem.newsfeed,
-            icon: LucideIcons.star,
-            label: 'NEWSFEED',
-          ),
-          _navItem(
-            context,
-            item: WebNavItem.events,
-            icon: LucideIcons.calendar,
-            label: 'EVENTS',
-          ),
-          _navItem(
-            context,
-            item: WebNavItem.dining,
-            icon: LucideIcons.utensils,
-            label: 'DINING',
-          ),
-          _navItem(
-            context,
-            item: WebNavItem.bookRoom,
-            icon: LucideIcons.doorOpen,
-            label: 'BOOK A ROOM',
-          ),
-          _navItem(
-            context,
-            item: WebNavItem.clubHouse,
-            icon: LucideIcons.home,
-            label: 'CLUB HOUSE',
-          ),
-          _navItem(
-            context,
-            item: WebNavItem.clubBenefits,
-            icon: LucideIcons.gem,
-            label: 'CLUB BENEFITS',
-          ),
-          const Spacer(),
           Container(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
             decoration: BoxDecoration(

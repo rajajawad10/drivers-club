@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+/// Web: below this width [WebScaffold] uses a drawer instead of a fixed sidebar.
+const double kWebNavDrawerBreakpoint = 720;
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Responsive Utility
 //  Usage:
@@ -100,10 +103,18 @@ class ResponsiveBuilder extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
-        final w   = constraints.maxWidth;
+        final w = constraints.maxWidth;
+
+        if (kIsWeb) {
+          if (w >= 1200 && desktop != null) return desktop!(context, size);
+          if (w >= kWebNavDrawerBreakpoint && tablet != null) {
+            return tablet!(context, size);
+          }
+          return mobile(context, size);
+        }
 
         if (w >= 1024 && desktop != null) return desktop!(context, size);
-        if (w >= 600  && tablet  != null) return tablet!(context, size);
+        if (w >= 600 && tablet != null) return tablet!(context, size);
         return mobile(context, size);
       },
     );

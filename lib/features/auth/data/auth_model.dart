@@ -53,6 +53,7 @@ class UserModel {
   final String? houseNumber;
   final String? ort;
   final String? land;
+  final String? role;
 
   UserModel({
     required this.id,
@@ -87,6 +88,7 @@ class UserModel {
     this.houseNumber,
     this.ort,
     this.land,
+    this.role,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -130,6 +132,8 @@ class UserModel {
       houseNumber:    json['houseNumber']?.toString(),
       ort:            json['ort']?.toString(),
       land:           json['land']?.toString(),
+      role:           json['role']?.toString()
+          ?? json['userRole']?.toString(),
     );
   }
 }

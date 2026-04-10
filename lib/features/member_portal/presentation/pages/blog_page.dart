@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'notifications_page.dart';
+import 'package:pitstop/core/responsive.dart';
 import 'package:pitstop/core/utils/external_links.dart';
 import 'package:pitstop/core/web_utils.dart';
 import 'package:pitstop/core/web_routes.dart';
@@ -78,8 +79,11 @@ class BlogListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size   = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
     final isWide = size.width > 600;
+    final r = R.of(context);
+    final crossAxisCount =
+        kIsWeb ? (r.isMobile ? 1 : 2) : (isWide ? 2 : 1);
     final content = SafeArea(
       child: Column(
         children: [
@@ -127,10 +131,10 @@ class BlogListPage extends StatelessWidget {
               child: GridView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: isWide ? 2 : 2,
+                  crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: isWide ? 0.85 : 0.78,
+                  childAspectRatio: crossAxisCount >= 2 ? 0.85 : 0.72,
                 ),
                 itemCount: _newsItems.length,
                 itemBuilder: (context, index) => _NewsCard(
@@ -142,44 +146,71 @@ class BlogListPage extends StatelessWidget {
 
             // ── Footer ───────────────────────────────────────────────────────
             Divider(color: _divider, height: 1),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Club logo circle
-                  Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black87, width: 2),
-                    ),
-                    child: const Center(
-                      child: Icon(LucideIcons.crown,
-                          size: 13, color: Colors.black87),
-                    ),
+            LayoutBuilder(
+              builder: (context, bc) {
+                final compactFooter = bc.maxWidth < 520;
+                final crown = Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black87, width: 2),
                   ),
-                  // Instagram
-                  HoverCursor(
-                    child: GestureDetector(
-                      onTap: ExternalLinks.openInstagram,
-                      child: const Icon(LucideIcons.instagram,
-                          size: 20, color: Colors.black54),
-                    ),
+                  child: const Center(
+                    child: Icon(LucideIcons.crown,
+                        size: 13, color: Colors.black87),
                   ),
-                  // Links
-                  Row(
-                    children: ['FAQ', 'Terms', 'Privacy'].map((l) =>
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16),
-                          child: Text(l,
-                              style: GoogleFonts.inter(
-                                  fontSize: 12, color: Colors.black54)),
+                );
+                final ig = HoverCursor(
+                  child: GestureDetector(
+                    onTap: ExternalLinks.openInstagram,
+                    child: const Icon(LucideIcons.instagram,
+                        size: 20, color: Colors.black54),
+                  ),
+                );
+                final links = Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: ['FAQ', 'Terms', 'Privacy']
+                      .map(
+                        (l) => Text(
+                          l,
+                          style: GoogleFonts.inter(
+                              fontSize: 12, color: Colors.black54),
                         ),
-                    ).toList(),
-                  ),
-                ],
-              ),
+                      )
+                      .toList(),
+                );
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  child: compactFooter
+                      ? Wrap(
+                          spacing: 16,
+                          runSpacing: 12,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                crown,
+                                const SizedBox(width: 12),
+                                ig,
+                              ],
+                            ),
+                            links,
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            crown,
+                            ig,
+                            links,
+                          ],
+                        ),
+                );
+              },
             ),
           ],
         ),
@@ -226,6 +257,9 @@ class BlogListPage extends StatelessWidget {
         break;
       case WebNavItem.clubBenefits:
         route = WebRoutes.clubBenefits;
+        break;
+      case WebNavItem.communities:
+        route = WebRoutes.communities;
         break;
     }
     Navigator.pushReplacementNamed(context, route);

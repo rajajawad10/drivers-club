@@ -194,6 +194,9 @@ class _RoomBookingPageState extends State<RoomBookingPage> {
       case WebNavItem.clubBenefits:
         route = WebRoutes.clubBenefits;
         break;
+      case WebNavItem.communities:
+        route = WebRoutes.communities;
+        break;
     }
     Navigator.pushReplacementNamed(context, route);
   }
