@@ -33,6 +33,9 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Local Flutter SDK clone (Vercel / tool/flutter_build_web.sh)
+.flutter-sdk/
+
 # Symbolication related
 app.*.symbols
 
